@@ -1,0 +1,36 @@
+---
+title: "Présentation HMMA236"
+subtitle: 
+author: 
+ - "Sophie Manuel"
+ - "Anas Zakroum"
+date: "21/03/2021"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+    extra_dependencies:
+    - dsfont 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+## Introduction
+
+- var de durée , évènement intérêt
+- variable étudié : type de régime
+- taux de censure
+- nature : qualitative
+
+## Analyse de données
+
+- modèles de survie paramétriques (régression log-lin): Weibull, log-norm, `survreg`
+
+- modèle cox non-param: `coxph`
+
+- comparaison coeff (attention graphiques)
+
+## Conclusion
+bilan + autre perspectives envisageables
