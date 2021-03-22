@@ -1,6 +1,6 @@
 ---
 title: "Présentation HMMA236"
-subtitle: 
+subtitle: "Démocraties et non-démocraties"
 author: 
  - "Sophie Manuel"
  - "Anas Zakroum"
