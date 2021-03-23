@@ -1,0 +1,39 @@
+Significations des variables democracy_dictature
+
+ehead : Nom du chef du gouvernement. 
+Les chefs effectifs sont : 
+1) les présidents dans les démocraties présidentielles ; 
+2) les premiers ministres dans les démocraties parlementaires et mixtes, sauf dans les cas de Djohar aux Comores et de Pre Val en Haïti ; 
+3) les secrétaires généraux du parti communiste dans les dictatures communistes, sauf dans le cas de Deng Xiaoping en Chine; 
+4) rois, présidents et dirigeants diffamatoires dans les dictatures non communistes, sauf dans les cas de Singapour, de la Malaisie, du Cambodge, du Laos et du Myanmar où le chef effectif est parfois le premier ministre; 
+5) militaire ou autre chiffre lorsque les sources indiquent que la tête nominale est figure de marionnette. Sont inclus les gouvernements intérimaires ou provisoires, en supposant qu’on ne peut distinguer entre les cas où les chefs ont tenté de consolider le pouvoir et ont échoué des cas où les chefs n’ont pas essayé de le faire.
+Source : Compilé à partir de Banks (diverses années), Beinen et Van de Walle (1991), du site Web Rulers, Zarate (2001) et Lentz (1994).
+
+ctryname : Nom du pays.
+
+cowcode2 : Corrélats modifiés de l’identificateur de guerre du pays.
+
+politicycode : identifiant du pays POLITY IV.
+
+un_region_name :  Identificateur de la région géographique des Nations Unies.
+
+un_continent_name : Identifiant du continent des Nations Unies.
+
+democracy : Variable codant si le régime est démoratique ou non.
+
+regime : Classification en six types de régimes. 
+	Parliamentary Dem = Démocratie parlementaire 
+	Mixed Dem = Démocratie mixte (semi-présidentielle) 
+	Presidential Dem = Démocratie présidentielle
+	Civilian Dict = Dictature civile 
+	Military Dict = Dictature militaire 
+	Monarchy = Monarchie.
+
+start_year : Année de début de mandat.
+
+end_year : Année de fin de mandat.
+
+duration : durée du mandat.
+
+observed : 1 si le dirigeant est arrivé à la fin de son mandat (vivant);
+	   0 si le dirigeant exerce encore ou si il a été assasiné.
