@@ -14,7 +14,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+```
+
+```{r library}
+library(dplyr)
+library(survival)
+library(survminer)
+library(timereg)
 ```
 
 ## Introduction
@@ -34,3 +41,81 @@ knitr::opts_chunk$set(echo = F)
 
 ## Conclusion
 bilan + autre perspectives envisageables
+
+
+
+\newpage
+# Introduction
+
+  Dans ce rapport nous avons cherché à comparer des modèles d'analyse de survie paramétriques et non-paramétriques sur un jeu de données ainsi que l'influence d'une covarianble sur la survie. Ici, nous traiterons surtout les modèles paramétriques vu au cours du semestre, les modèles non-paramétriques ayant été vu durant le semestre dernier (pour approfondir ce type de modèle vous pouvez retrouver notre travail ici [lien]).
+ 
+ 
+  
+  Lorsqu'on travaille avec des modèles de survie, on chercher à étudier des durées de survie d'une population donnée.  
+La **durée de vie** (ou de survie) est le temps écoulé du début du suivi de l'individu (naissance) jusqu'à l'apparition de l'*évènement d'intérêt* (décès) pour les individus d'une population. On la note souvent $T$
+  
+  
+  Dans notre étude, nous utiliserons un jeu de données sur les chefs d'états en place dans le monde entre 1946 et 2008, soit environ 1800 chefs d'états de 202 pays différents sur plus d'un demi siècle. 
+  
+  
+```{r,out.width="50%",fig.align="center",echo = FALSE, include=TRUE}
+# Read file
+df <- read.csv(file = 'dd.csv', sep = ",", header= TRUE)
+df <- as_tibble(df)
+
+df <- df %>% ungroup() %>% select(-cowcode2,-politycode, - end_year)
+sample <- sample_n(df,4)
+
+sample <- sample %>% select(-un_region_name,-leaderspellreg,-democracy, -un_continent_name)
+sample <- rename(sample,Gouv = ehead, Pays = ctryname, Régime = regime, "Date d'entrée" = start_year, Durée = duration, Statut = observed)
+
+knitr::kable(sample,align = 'c')
+```
+  
+  Donc en termes de survie, les individus sont les chefs d'état, la durée de survie est la durée du mandat, l'évènement d'intérêt est la fin du mandat.
+  
+  
+  Puisque nous sommes dans le cadre des modèles de survie, nous n'avons pas toujours toutes les informations sur l'individu, dans le sens où son suivi dans l'étude peut être interrompu, c'est-à-dire que l'évènement d'intérêt n'est pas observé durant l'étude. On appelle ce phénomène la **censure**. Elle est codée comme une indicatrice de l'observation de l'évènement d'interêt : 1 si l'évènement est observé, 0 sinon.
+
+*Formule ?* 
+ 
+  Dans notre cas, la colonne **Statut** représente la censure. On se retrouvera donc confronté à de la censure (aléatoire et fixe) à droite, ceci signifie que l'évènement d'intérêt ne sera pas observé avant la fin de l'étude. 
+Les cas de censures fixes sont les chefs d'état encore au pouvoir en 2008 (fin de l'étude).
+Les cas de censures aléatoires sont les décès des chefs de gouvernements pendant leur mandat.
+  
+  
+  Avant de commencer notre étude vérifions ce jeu de données est raisonnable (suffisamment de données) pour interpréter nos futurs résultats.
+  
+Pour cela calculons le pourcentage de censure de l'échantillon.
+```{r taux_de_censure, echo = T}
+n <- length(df$ehead) #nombre d'individus
+delta <- df$observed #vecteur des censures
+pourcentage_censure <- 1-sum(delta)/n
+cat("Pourcentage de censure :", pourcentage_censure*100, "%")
+```
+On observe que le pourcentage de données censurées dans l'échantillon est d'environ $19 \%$ ce qui représente 340 individus censurés sur les plus de 1 800. On peut donc raisonnablement se dire que ce jeu de données est adapté à de l'analyse de survie.
+
+ 
+ Dans notre étude nous avons choisi de regarder l'influence du type de régime sur la durée du mandat d'un chef d'état. La covariable que nous avons choisie d'étudier est qualitative.
+ 
+\newpage
+# Analyse de données
+
+## Modèles de survie paramétriques
+
+Dans cette partie nous allons réaliser des regressions log-linéaires sur des modèles paramétriques.
+
+### Modèle de Weibull
+
+### Modèle log-logistique
+
+
+\newpage
+# Conclusion
+
+
+\newpage 
+# Annexes et références
+  
+  Références :
+Cheibub, José Antonio, Jennifer Gandhi, and James Raymond Vreeland. 2010. “Democracy and Dictatorship Revisited.” Public Choice, vol. 143, no. 2-1, pp. 67-101.
