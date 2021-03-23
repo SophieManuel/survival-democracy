@@ -17,15 +17,16 @@ header-includes:
   - \usepackage{amsthm}
   - \usepackage{amsmath}
 output:
-  pdf_document:
-    toc: yes
+  pdf_document: 
     toc_depth: 4
     number_sections: yes
     keep_tex: yes
-    extra_dependencies:
-    - dsfont 
+    extra_dependencies: dsfont
 ---
 
+\newpage
+\tableofcontents
+\newpage
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F, warning = F, message = F)
 ```
@@ -37,14 +38,14 @@ library(survminer)
 library(timereg)
 ```
 
-## Introduction
+\section{Consignes}
 
 - var de durée , évènement intérêt
 - variable étudié : type de régime
 - taux de censure
 - nature : qualitative
 
-## Analyse de données
+\subsection{Analyse de données}
 
 - modèles de survie paramétriques (régression log-lin): Weibull, log-norm, `survreg`
 
@@ -52,13 +53,14 @@ library(timereg)
 
 - comparaison coeff (attention graphiques)
 
-## Conclusion
+\subsection{Conclusion}
 bilan + autre perspectives envisageables
 
 
 
 \newpage
-# Introduction
+
+\section{Introduction}
 
   Dans ce rapport nous avons cherché à comparer des modèles d'analyse de survie paramétriques et non-paramétriques sur un jeu de données ainsi que l'influence d'une covarianble sur la survie. Ici, nous traiterons surtout les modèles paramétriques vu au cours du semestre, les modèles non-paramétriques ayant été vu durant le semestre dernier (pour approfondir ce type de modèle vous pouvez retrouver notre travail ici [lien]).
  
@@ -112,23 +114,23 @@ On observe que le pourcentage de données censurées dans l'échantillon est d'e
  Dans notre étude nous avons choisi de regarder l'influence du type de régime sur la durée du mandat d'un chef d'état. La covariable que nous avons choisie d'étudier est qualitative.
  
 \newpage
-# Analyse de données
+\section{Analyse de données}
 
-## Modèles de survie paramétriques
+\subsection{ Modèles de survie paramétriques}
 
 Dans cette partie nous allons réaliser des regressions log-linéaires sur des modèles paramétriques.
 
-### Modèle de Weibull
+\subsubsection{odèle de Weibull}
 
-### Modèle log-logistique
+\subsubsection{Modèle log-logistique}
 
 
 \newpage
-# Conclusion
+\section{Conclusion}
 
 
 \newpage 
-# Annexes et références
+\section{Annexes et références}
   
   Références :
 Cheibub, José Antonio, Jennifer Gandhi, and James Raymond Vreeland. 2010. “Democracy and Dictatorship Revisited.” Public Choice, vol. 143, no. 2-1, pp. 67-101.
