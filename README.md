@@ -1,2 +1,2 @@
 # survival-democracy
-Little presentation about survival analyse and democracies.
+a mini project on lifespans of political regimes using survival analysis methods

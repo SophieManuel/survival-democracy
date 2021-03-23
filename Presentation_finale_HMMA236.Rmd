@@ -5,10 +5,23 @@ author:
  - "Sophie Manuel"
  - "Anas Zakroum"
 date: "21/03/2021"
+header-includes:
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyhead[L]{Projet}
+  - \fancyhead[R]{\emph{M1 - Biostatistique}}
+  - \usepackage{dsfont}
+  - \usepackage{subfig}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{amsthm}
+  - \usepackage{amsmath}
 output:
   pdf_document:
     toc: yes
-    toc_depth: 3
+    toc_depth: 4
+    number_sections: yes
+    keep_tex: yes
     extra_dependencies:
     - dsfont 
 ---
