@@ -118,16 +118,40 @@ On observe que le pourcentage de données censurées dans l'échantillon est d'e
 
 \subsection{ Modèles de survie paramétriques}
 
+
 Dans cette partie nous allons réaliser des regressions log-linéaires sur des modèles paramétriques.
 
-\subsubsection{odèle de Weibull}
+\subsubsection{Modèle de Weibull}
+
+
+
+\subsubsubsection{Fonction survreg}
+
+Changement de paramétrisation avec R
+
+```{r survreg_weibull}
+df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
+
+modweib <- survreg(Surv(df$duration,delta)~df$regime,init = "Monarchy" ,dist='weibull')
+summary(modweib)
+modweib$coefficients/sqrt(diag(modweib$var)[-7]) # nombre de sigma pour s'annuler
+```
+
+```{r densité}
+
+plot(rweibull(100, 3.5, 0.88), ylim = c(0,10))
+lines(dweibull(seq(0,10,100),modweib$coefficients[1],modweib$scale), col = "red")
+ggplot
+
+```
 
 \subsubsection{Modèle log-logistique}
-
+\subsubsubsection{Fonction survreg}
 
 \newpage
 \section{Conclusion}
 
+méthode non-paramétrique sert à valider la méthode paramétrique.
 
 \newpage 
 \section{Annexes et références}
