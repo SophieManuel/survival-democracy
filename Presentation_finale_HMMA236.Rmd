@@ -23,7 +23,14 @@ output:
     keep_tex: yes
     extra_dependencies: dsfont
 ---
-
+\newtheorem{definition}{Définition}
+\newtheorem{exemple}{Exemple}
+\newtheorem{corollary}{Corollaire}
+\newtheorem*{proposition}{Proposition}
+\newtheorem{lemma}{Lemme}
+\newtheorem*{demonstration}{Démonstration}
+\newtheorem{remark}{Remarque}
+\newtheorem{propetie}{Propriété}
 \newpage
 \tableofcontents
 \newpage
