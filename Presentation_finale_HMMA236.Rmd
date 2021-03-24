@@ -111,15 +111,26 @@ cat("Pourcentage de censure :", pourcentage_censure*100, "%")
 On observe que le pourcentage de données censurées dans l'échantillon est d'environ $19 \%$ ce qui représente 340 individus censurés sur les plus de 1 800. On peut donc raisonnablement se dire que ce jeu de données est adapté à de l'analyse de survie.
 
  
- Dans notre étude nous avons choisi de regarder l'influence du type de régime sur la durée du mandat d'un chef d'état. La covariable que nous avons choisie d'étudier est qualitative.
+ Dans notre étude nous avons choisi de regarder l'influence du type de régime sur la durée du mandat d'un chef d'état. La covariable que nous avons choisie d'étudier est qualitative dont les modalités sont : 
+  - la monarchie
+  - la dictature civile
+  - la dictature militaire
+  - la démocratie parlementaire
+  - la démocratie présidentielle
+  - et la démocratie mixte.
  
 \newpage
 \section{Analyse de données}
 
+Dans le cadre de l'analyse de survie nous cherchons à estimer la fonction de survie.
+fonction de survie def.
+
+Nous pouvons l'estimer de façon paramétrique ou de façon non-paramétrique.
+
 \subsection{ Modèles de survie paramétriques}
 
 
-Dans cette partie nous allons réaliser des regressions log-linéaires sur des modèles paramétriques.
+Dans cette partie nous allons réaliser des régressions log-linéaires sur des modèles paramétriques.
 
 \subsubsection{Modèle de Weibull}
 
@@ -127,7 +138,7 @@ Dans cette partie nous allons réaliser des regressions log-linéaires sur des m
 
 \subsubsubsection{Fonction survreg}
 
-Changement de paramétrisation avec R
+Changement de paramétrisation avec R.
 
 ```{r survreg_weibull}
 df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
@@ -138,12 +149,35 @@ modweib$coefficients/sqrt(diag(modweib$var)[-7]) # nombre de sigma pour s'annule
 ```
 
 ```{r densité}
+seq <- seq(0, 5, length.out = 100)
+yweib <- dweibull(seq, modweib$coefficients[1], modweib$scale)
 
-plot(rweibull(100, 3.5, 0.88), ylim = c(0,10))
-lines(dweibull(seq(0,10,100),modweib$coefficients[1],modweib$scale), col = "red")
-ggplot
+hist(df$duration, breaks = 50, freq = F, main = "", ylim = c(0,1.6))
+lines(density(df$duration), col ="blue") # méthode à noyau
+lines(seq, yweib, type = "l", col = "red")
 
 ```
+
+Nous avons choisi la monarchie comme référent (`Intercept`) car c'est la modalité pour laquelle les duréees de vies sont les plus longues en moyenne comme on peut le voir sur une représentation graphique utilisant un estimateur non-paramétrique de Kaplan-Meier. (ou on fait un histogramme)
+
+```{r Kaplan-Meier}
+fit_regime <- survfit(Surv(duration,observed) ~ regime, data = df)
+
+ggsurvplot(fit_regime,
+          pval = TRUE, pval.method=T, pval.coord=c(25,0.8), pval.method.coor=c(25,0.9), conf.int = TRUE,
+          linetype = "strata", # Change line type by groups
+          surv.median.line = "hv", # Specify median survival
+          ggtheme = theme_grey(base_size =  11), # Change ggplot2 theme
+          break.time.by = 5,
+          title="Courbes de survie des différents types de régimes",
+          legend = c(0.85,0.809),
+          legend.title = "Régimes",
+          xlab= "Années", ylab="Probabilité de rester au pouvoir",
+          legend.labs = c("Monarchie", "Dict. Civile", "Dict. militaire", "Démoc. mixte", "Démoc. parlementaire", "Démoc. présidentielle")
+          )
+```
+
+
 
 \subsubsection{Modèle log-logistique}
 \subsubsubsection{Fonction survreg}
