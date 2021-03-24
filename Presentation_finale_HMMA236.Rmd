@@ -18,7 +18,7 @@ header-includes:
   - \usepackage{amsmath}
 output:
   pdf_document: 
-    toc_depth: 4
+    toc_depth: 5
     number_sections: yes
     keep_tex: yes
     extra_dependencies: dsfont
@@ -129,14 +129,24 @@ Nous pouvons l'estimer de façon paramétrique ou de façon non-paramétrique.
 
 \subsection{ Modèles de survie paramétriques}
 
+Dans les modèles de survie paramétriques, le temps est supposé suivre une certaine distribution dont la fonction de densité de probabilité $f(t)$ peut être exprimée en fonction de paramètres inconnus. Une fois qu'une fonction de densité de probabilité est désignée la variable de durée, les fonctions de survie et de risque correspondantes peuvent être déterminées. La fonction de survie $S(x) = \mathbb{P}(X > x)$ peut être déterminée à partir de la fonction densité.\\
+Les fonctions de survie $S(x)$ et de risque instantanné $h(x)$ sont reliées de la manière suivante:
 
-Dans cette partie nous allons réaliser des régressions log-linéaires sur des modèles paramétriques.
+\begin{proposition}
+Soit $X \longrightarrow \mathbb{R}_+$ une variable aléatoire de densité $f$, de fonction de survie $S$ et de risque instantanné $h$. Alors, on a les relations suivantes :
+
+$$
+h(x)= \dfrac{f(x)}{S(x)} = - \dfrac{d}{dx} \log \big(S(x) \big)
+$$
+\end{proposition}
+
+
 
 \subsubsection{Modèle de Weibull}
 
 
 
-\subsubsubsection{Fonction survreg}
+\paragraph{Fonction survreg}
 
 Changement de paramétrisation avec R.
 
@@ -180,7 +190,7 @@ ggsurvplot(fit_regime,
 
 
 \subsubsection{Modèle log-logistique}
-\subsubsubsection{Fonction survreg}
+\paragraph{Fonction survreg}
 
 \newpage
 \section{Conclusion}
