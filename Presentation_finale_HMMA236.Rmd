@@ -127,7 +127,7 @@ On observe que le pourcentage de données censurées dans l'échantillon est d'e
   - et la démocratie mixte.
  
 \newpage
-\section{Modèles de survie paramétriques}
+\section{Analyse des données}
 
 
 Dans les modèles de survie paramétriques, le temps est supposé suivre une certaine distribution dont la fonction de densité de probabilité $f(t)$ peut être exprimée en fonction de paramètres inconnus. Une fois qu'une fonction de densité de probabilité est désignée la variable de durée, les fonctions de survie et de risque correspondantes peuvent être déterminées.  
@@ -140,30 +140,23 @@ h(x)= \dfrac{f(x)}{S(x)} = - \dfrac{d}{dx} \log \big(S(x) \big)
 $$
 \end{proposition}
 
-\subsection{ Modèle de Weibull}
-Le modèle de Weibull est un modèle largement utilisé en analyse de survie pour son interpretabilité et pour ses propriétés.
 
+\subsection{Modèle de Weibull sans covariables}
+Le modèle de Weibull est un modèle largement utilisé en analyse de survie pour son interpretabilité et pour ses propriétés.
 $$
 Survie ~~ accelerée \Longrightarrow ~ Hasards ~ ~proportionnels
 $$
-La fonction de risque instantanné pour une loi de Weibull$(\alpha,\lambda)$ avec $\alpha,\lambda >0$ est $h(x) = \alpha \lambda x^{\alpha -1}$.\\
-La fonction de survie est $S(x) = e^{-\lambda x ^{\alpha}}$
+La fonction de risque instantanné pour une loi de Weibull$(\alpha,\lambda)$ avec $\alpha,\lambda >0$ est $h(x) = \alpha \lambda x^{\alpha -1}$.  
+La fonction de survie est $S(x) = e^{-\lambda x ^{\alpha}}$  
 Le modèle de Weibull possède les propriétés suivantes :
 \begin{propetie}
 Soit $X : \Omega \longrightarrow \mathbb{R}_+$ une variable aléatoire suivant une loi de Weibull de paramètres $\alpha,\lambda > 0$ de fonction de risque instantanné $h$. Alors, \\
 $$
 S(x) = e^{-\lambda x ^\alpha} \Rightarrow -\log(S(x)) = \lambda x ^{\alpha} \Rightarrow \log(-\log(S(x))) = \log(\lambda) + \alpha \log(x)
 $$
-Et :
-\begin{itemize}
-  \item $\alpha > 1 \Longrightarrow h$ est monotone croissante.
-  \item $\alpha < 1 \Longrightarrow h$ est monotone décroissante
-  \item $\alpha = 1 \Longrightarrow h$ est constante (modèle exponentiel).
-\end{itemize}
 \end{propetie}
 
 
-\subsubsection{Modèle de Weibull sans covariables}
 
 ```{r, include = F}
 
@@ -187,7 +180,7 @@ knitr::include_graphics("weib_haz.png")
 ```
 
 La première prorpriété indique la linéarité de $log(-log(S(x)))$ en $log(x)$. Et donc, couplée à l'estimateur de la survie de Kaplan Meier dont le calcul est possible grâce au données, elle permet l'évaluation graphique de la validité du modèle.
-\newpage
+
 En utilisant l'estimateur de Kaplan-Meier, nous allons ajuster un modèle de régression linéaire sur les données de survie:
 
 ```{r}
@@ -206,6 +199,54 @@ result.lm <- lm(logLogSurvEst ~ logSurvTime)
 #plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
 #abline(result.lm, col = "#6960EC")
 ```
+
+
+
+
+
+
+
+
+
+
+\subsection{Modèle paramétrique avec covariables}
+\subsubsection{Par régime}
+
+Nous choisissons de répartir les régimes en deux classes : les régimes démocratiques et les régimes non-démocratiques.
+Les régimes démocratiques comprennent les démocraties mixtes, parlementaires et présidentielles. Les régimes non-démocratiques comprennent les dictatures civiles, militaires et les monarchies.  
+Ceci introduit donc une covariable qu'on a nommé *Régime* Voici un extrait du nouveau tableau.
+
+
+```{r}
+#########################################################
+################ Survreg  #### covariables ##############
+#########################################################
+###
+### Extrait du tableau
+###
+sample_dem <- read.csv(file = 'sample_dem.csv', sep = ",", header= TRUE)
+knitr::kable(sample_dem,align = 'c')
+```
+
+
+
+
+
+\newpage
+```{r, include = F}
+democracy.weib <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'weibull' )
+democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
+democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
+democracy.lnorm <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'lognormal' )
+democracy.ga <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gamma' )
+democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gompertz' )
+#-2 * democracy.weib$loglik + 4
+#-2 * democracy.lnorm$loglik + 4
+#-2 * democracy.llog$loglik + 4
+#-2 * democracy.exp$loglik + 4
+library(flexsurv)
+```
+
 
 
 
