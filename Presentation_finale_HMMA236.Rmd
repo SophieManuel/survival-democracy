@@ -130,8 +130,11 @@ On observe que le pourcentage de données censurées dans l'échantillon est d'e
 \section{Modèles de survie paramétriques}
 
 
-Dans les modèles de survie paramétriques, le temps est supposé suivre une certaine distribution dont la fonction de densité de probabilité $f(t)$ peut être exprimée en fonction de paramètres inconnus. Une fois qu'une fonction de densité de probabilité est désignée la variable de durée, les fonctions de survie et de risque correspondantes peuvent être déterminées.  
-Les fonctions de survie $S(x)$ et de risque instantanné $h(x)$ sont reliées de la manière suivante:
+Dans les modèles de survie paramétriques, le temps est supposé suivre une certaine distribution dont la fonction de densité de probabilité $f(t)$ peut être exprimée en fonction de paramètres inconnus.  
+Une fois qu'une fonction de densité de probabilité est assigniée à la variable de durée, les fonctions de survie et de risque correspondantes peuvent être déterminées.  
+
+Les fonctions de survie $S(x)$ et de risque instantanné $h(x)$ sont reliées de la manière suivante:  
+
 
 \begin{proposition}
 Soit $X : \Omega \longrightarrow \mathbb{R}_+$ une variable aléatoire de densité $f$, de fonction de survie $S$ et de risque instantanné $h$. Alors, on a les relations suivantes :
@@ -141,96 +144,54 @@ $$
 \end{proposition}
 
 \subsection{ Modèle de Weibull}
-Le modèle de Weibull est un modèle largement utilisé en analyse de survie pour son interpretabilité et pour ses propriétés.
-
-$$
-Survie ~~ accelerée \Longrightarrow ~ Hasards ~ ~proportionnels
-$$
-La fonction de risque instantanné pour une loi de Weibull$(\alpha,\lambda)$ avec $\alpha,\lambda >0$ est $h(x) = \alpha \lambda x^{\alpha -1}$.\\
-La fonction de survie est $S(x) = e^{-\lambda x ^{\alpha}}$
-Le modèle de Weibull possède les propriétés suivantes :
-\begin{propetie}
-Soit $X : \Omega \longrightarrow \mathbb{R}_+$ une variable aléatoire suivant une loi de Weibull de paramètres $\alpha,\lambda > 0$ de fonction de risque instantanné $h$. Alors, \\
-$$
-S(x) = e^{-\lambda x ^\alpha} \Rightarrow -\log(S(x)) = \lambda x ^{\alpha} \Rightarrow \log(-\log(S(x))) = \log(\lambda) + \alpha \log(x)
-$$
-Et :
-\begin{itemize}
-  \item $\alpha > 1 \Longrightarrow h$ est monotone croissante.
-  \item $\alpha < 1 \Longrightarrow h$ est monotone décroissante
-  \item $\alpha = 1 \Longrightarrow h$ est constante (modèle exponentiel).
-\end{itemize}
-\end{propetie}
-
-
-\subsubsection{Modèle de Weibull sans covariables}
-
-```{r, include = F}
-
-##################################################################
-########## densité de weibull + plots ############# ignored ######
-##################################################################
-
-weibHaz <- function(x, shape, scale) {dweibull(x, shape=shape, scale=scale)/pweibull(x, shape=shape, scale=scale,lower.tail=F)}
-curve(weibHaz(x, shape=1.5, scale=1/0.03), from=0, to=80,ylab='Hazard', xlab='Time', col="red" )
-text(60,0.05, expression(alpha > 1))
-text(20,0.01, expression(alpha<1))
-text(50,0.02,expression(alpha==1))
-curve(weibHaz(x, shape=0.5, scale=1/0.03), add = TRUE, col = "green")
-curve(weibHaz(x, shape=1, scale=1/0.03), add = TRUE, col = "blue")
-```
-
-```{r,fig.align='center',fig.out="50%", include = F}
-# Graphic
-knitr::include_graphics("weib_haz.png")
-# End graphic 
-```
-
-La première prorpriété indique la linéarité de $log(-log(S(x)))$ en $log(x)$. Et donc, couplée à l'estimateur de la survie de Kaplan Meier dont le calcul est possible grâce au données, elle permet l'évaluation graphique de la validité du modèle.
-\newpage
-En utilisant l'estimateur de Kaplan-Meier, nous allons ajuster un modèle de régression linéaire sur les données de survie:
-
-```{r}
-
-############################################################
-##### Calcul log log S + plot ######### sans covariables ###
-############################################################
-result.km <- survfit(Surv(duration, observed) ~ 1, data = df)
-survEst <- result.km$surv
-survTime <- result.km$time
-logLogSurvEst <- log(-log(survEst))
-logSurvTime <- log(survTime)
-result.lm <- lm(logLogSurvEst ~ logSurvTime)
-
-#plot 
-#plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
-#abline(result.lm, col = "#6960EC")
-```
-
-
-
-```{r,,fig.show="hold",fig.align='center',fig.cap="Sortie R de la regression linéaire. La droite verte est la droite des moindres carrés. (Intercept) estime l'ordonnée à l'origine et logSurTime estime la pente de la droite des moindres carrés.", out.width="40%"}
-# Graphic
-plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
-abline(result.lm, col = "#008080")
-knitr::include_graphics("weib_lm.png")
-# End graphic 
-```
-
-Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de Weibull en passant par la transformation inverse du $\log$. Nous obtenons donc $\hat{\lambda}=\exp(-0.9621)=0.38$ et $\hat{\alpha}=0.612$. Notons qu'avec un $R^2$ de $0.985$ nous pouvons conclure que le modèle de Weibull est ajusté aux données de survie.
-
-
-
-
-
 
 
 
 \subsubsection{Modèle de Weibull avec covariables}
+\paragraph{Par régime}
 
-Changement de paramétrisation avec R.
+Nous choisissons de répartir les régimes en deux classes : les régimes démocratiques et les régimes non-démocratiques.
+Les régimes démocratiques comprennent les démocraties mixtes, parlementaires et présidentielles. Les régimes non-démocratiques comprennent les dictatures civiles, militaires et les monarchies.  
+Ceci introduit donc une covariable qu'on a nommé *Régime* Voici un extrait du nouveau tableau.
 
-```{r survreg_weibull}
+
+```{r}
+#########################################################
+################ Survreg  #### covariables ##############
+#########################################################
+
+###
+### Extrait du tableau
+###
+sample_dem <- read.csv(file = 'sample_dem.csv', sep = ",", header= TRUE)
+knitr::kable(sample_dem,align = 'c')
+```
+
+
+
+
+
+\newpage
+```{r, include = F}
+#democracy.weib <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'weibull' )
+#democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
+#democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
+#democracy.lnorm <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'lognormal' )
+#democracy.ga <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gamma' )
+democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gompertz' )
+
+#-2 * democracy.weib$loglik + 4
+#-2 * democracy.lnorm$loglik + 4
+#-2 * democracy.llog$loglik + 4
+#-2 * democracy.exp$loglik + 4
+
+library(flexsurv)
+
+```
+
+\paragraph{Par type de régime}
+
+```{r survreg_weibull, include = F}
 df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
 
 modweib <- survreg(Surv(df$duration,delta)~df$regime,init = "Monarchy" ,dist='weibull')
@@ -238,7 +199,7 @@ summary(modweib)
 modweib$coefficients/sqrt(diag(modweib$var)[-7]) # nombre de sigma pour s'annuler
 ```
 
-```{r densité}
+```{r densité, include = F}
 seq <- seq(0, 5, length.out = 100)
 yweib <- dweibull(seq, modweib$coefficients[1], modweib$scale)
 
@@ -250,7 +211,7 @@ lines(seq, yweib, type = "l", col = "red")
 
 Nous avons choisi la monarchie comme référent (`Intercept`) car c'est la modalité pour laquelle les duréees de vies sont les plus longues en moyenne comme on peut le voir sur une représentation graphique utilisant un estimateur non-paramétrique de Kaplan-Meier. (ou on fait un histogramme)
 
-```{r Kaplan-Meier}
+```{r Kaplan-Meier, include = F}
 fit_regime <- survfit(Surv(duration,observed) ~ regime, data = df)
 
 ggsurvplot(fit_regime,
