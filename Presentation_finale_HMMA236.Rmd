@@ -224,7 +224,7 @@ Ceci introduit donc une covariable qu'on a nommé *Régime* Voici un extrait du 
 ###
 ### Extrait du tableau
 ###
-sample_dem <- read.csv(file = 'sample_dem.csv', sep = ",", header= TRUE)
+
 knitr::kable(sample_dem,align = 'c')
 ```
 
