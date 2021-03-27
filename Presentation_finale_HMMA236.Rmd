@@ -35,7 +35,7 @@ output:
 \tableofcontents
 \newpage
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F, warning = F, message = F, include = F)
+knitr::opts_chunk$set(echo = T, warning = F, message = F, include = T)
 ```
 
 ```{r library}
@@ -172,7 +172,7 @@ knitr::kable(sample_dem,align = 'c')
 
 
 \newpage
-```{r, include = F}
+```{r,echo=F, include = F}
 democracy.weib <- flexsurvreg(Surv(duration, observed) ~ regime, data = df, dist = 'weibull' )
 #democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
 #democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
@@ -222,23 +222,6 @@ lines(seq, yweib, type = "l", col = "red")
 ```
 
 Nous avons choisi la monarchie comme référent (`Intercept`) car c'est la modalité pour laquelle les duréees de vies sont les plus longues en moyenne comme on peut le voir sur une représentation graphique utilisant un estimateur non-paramétrique de Kaplan-Meier. (ou on fait un histogramme)
-
-```{r Kaplan-Meier, include = F}
-fit_regime <- survfit(Surv(duration,observed) ~ regime, data = df)
-
-ggsurvplot(fit_regime,
-          pval = TRUE, pval.method=T, pval.coord=c(25,0.8), pval.method.coor=c(25,0.9), conf.int = TRUE,
-          linetype = "strata", # Change line type by groups
-          surv.median.line = "hv", # Specify median survival
-          ggtheme = theme_grey(base_size =  11), # Change ggplot2 theme
-          break.time.by = 5,
-          title="Courbes de survie des différents types de régimes",
-          legend = c(0.85,0.809),
-          legend.title = "Régimes",
-          xlab= "Années", ylab="Probabilité de rester au pouvoir",
-          legend.labs = c("Monarchie", "Dict. Civile", "Dict. militaire", "Démoc. mixte", "Démoc. parlementaire", "Démoc. présidentielle")
-          )
-```
 
 
 
@@ -293,9 +276,9 @@ Comparons les résultats pour les deux types de modèles.
 covariables <-  c("Dict. Civilie","Dict. Militaraire ","Dem. Parlementaire ","Dem. Mixe", "Dem. Présidentielle")
 coefficients_weibull <- -modweib$coeff[-1]/modweib$scale 
 ICL95 <- cox$coefficients -sqrt(diag(cox$var))*1.96 # bornes de l'IC 95% du coeff. de Z dans Cox
-ICH95 <- cox$coefficients +sqrt(diag(cox$var))*1.96 # estimation cox =0.176 [-0.38 ; 0.74] 
+ICU95 <- cox$coefficients +sqrt(diag(cox$var))*1.96 # estimation cox =0.176 [-0.38 ; 0.74] 
 AppartenanceIC <- (coefficients_weibull >= ICL95 || coefficients_weibull <= ICH95)
-D <- data.frame(row.names = covariables, coefficients_weibull, cox$coefficients, ICL95, ICH95, AppartenanceIC)
+D <- data.frame(row.names = covariables, coefficients_weibull, cox$coefficients, ICL95, ICU95, AppartenanceIC)
 knitr::kable(D, align = 'c')
 ```
 On voit que les estimations sont assez différentes entre les coefficients estimés avec le modèle log-linéaire de weibull et les coefficients estimés dans le modèle de Cox. 
