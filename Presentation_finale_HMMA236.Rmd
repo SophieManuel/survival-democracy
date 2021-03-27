@@ -46,27 +46,6 @@ library(timereg)
 library(flexsurv)
 ```
 
-\section{Consignes}
-
-- var de durée , évènement intérêt
-- variable étudié : type de régime
-- taux de censure
-- nature : qualitative
-
-\subsection{Analyse de données}
-
-- modèles de survie paramétriques (régression log-lin): Weibull, log-norm, `survreg`
-
-- modèle cox non-param: `coxph`
-
-- comparaison coeff (attention graphiques)
-
-\subsection{Conclusion}
-bilan + autre perspectives envisageables
-
-
-
-\newpage
 
 \section{Introduction}
 
@@ -146,9 +125,6 @@ $$
 
 \subsection{Modèle de Weibull sans covariables}
 Le modèle de Weibull est un modèle largement utilisé en analyse de survie pour son interpretabilité et pour ses propriétés.
-$$
-Survie ~~ accelerée \Longrightarrow ~ Hasards ~ ~proportionnels
-$$
 La fonction de risque instantanné pour une loi de Weibull$(\alpha,\lambda)$ avec $\alpha,\lambda >0$ est $h(x) = \alpha \lambda x^{\alpha -1}$.  
 La fonction de survie est $S(x) = e^{-\lambda x ^{\alpha}}$  
 Le modèle de Weibull possède les propriétés suivantes :
@@ -158,29 +134,7 @@ $$
 S(x) = e^{-\lambda x ^\alpha} \Rightarrow -\log(S(x)) = \lambda x ^{\alpha} \Rightarrow \log(-\log(S(x))) = \log(\lambda) + \alpha \log(x)
 $$
 \end{propetie}
-
-
-
-```{r, include = F}
-
-##################################################################
-########## densité de weibull + plots ############# ignored ######
-##################################################################
-
-weibHaz <- function(x, shape, scale) {dweibull(x, shape=shape, scale=scale)/pweibull(x, shape=shape, scale=scale,lower.tail=F)}
-curve(weibHaz(x, shape=1.5, scale=1/0.03), from=0, to=80,ylab='Hazard', xlab='Time', col="red" )
-text(60,0.05, expression(alpha > 1))
-text(20,0.01, expression(alpha<1))
-text(50,0.02,expression(alpha==1))
-curve(weibHaz(x, shape=0.5, scale=1/0.03), add = TRUE, col = "green")
-curve(weibHaz(x, shape=1, scale=1/0.03), add = TRUE, col = "blue")
-```
-
-```{r,fig.align='center',fig.out="50%", include = F}
-# Graphic
-knitr::include_graphics("weib_haz.png")
-# End graphic 
-```
+  
 
 La première prorpriété indique la linéarité de $log(-log(S(x)))$ en $log(x)$. Et donc, couplée à l'estimateur de la survie de Kaplan Meier dont le calcul est possible grâce au données, elle permet l'évaluation graphique de la validité du modèle.
 
@@ -219,14 +173,11 @@ Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de
 
 
 
-
-
-
 \subsection{Modèle paramétrique avec covariables}
 \subsubsection{Par régime}
 Les types de régimes peuvent être répartis en deux classes : les régimes démocratiques et les régimes non-démocratiques.
 Les régimes démocratiques comprennent les démocraties mixtes, parlementaires et présidentielles. Les régimes non-démocratiques comprennent les dictatures civiles, militaires et les monarchies.  
-Ceci introduit donc une covariable qu'on a nommé *Régime*, ses valeurs sont : $ \{Democracy, ~ Non- Democracy ~  \}$.  
+Ceci introduit donc une covariable qu'on a nommé *Régime*,
 Voici un extrait du nouveau tableau.
 
 
@@ -238,7 +189,7 @@ Voici un extrait du nouveau tableau.
 ### Extrait du tableau
 ###
 sample_dem <- read.csv('sample_dem.csv')
-knitr::kable(sample_dem,align = 'c', caption = "This is the table caption")
+knitr::kable(sample_dem,align = 'c', caption = "Nouvel extrait du tableau")
 ```
 
 Afin de savoir sur quel modèle baser notre analyse, Nous évaluons le critère AIC avec le estimateurs du maximum de vraisemblance issus de la régression en considérant 6 différentes distributions. 
@@ -258,14 +209,14 @@ democracy.ga <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dis
 democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gompertz' )
 
 aic.table <- read.csv('aic_regime.csv')
-knitr::kable(aic.table,align = 'c')
+knitr::kable(aic.table,align = 'c', caption = "Critère AIC par modèle.")
 
 
 ```
 
 Le modèle Log-normal est celui dont le critère AIC est le plus petit . C'est sur ce modèle qu'on devrait baser notre étude. Cependant, une évaluation graphique des différents modèle nous suggère que la loi de Gompertz semble plus appropriée pour l'estimation des données de survie comme on peut voir sur les graphiques ci dessous.
 
-```{r, echo = FALSE, fig.show='hold', out.width="33%", fig.align='center'}
+```{r, echo = FALSE, fig.show='hold', out.width="33%",fig.cap = "Estimations paramétriques et non paramétriques du hasard cumulé pour les modèles Log-normal, Gompertz et Weibull. Les courbes en violet et en doré représentent l'estimation non paramétrique de la fonction de survie par Kaplan-Meier. Les courbes enrouge designent à chaque fois la surive estimée des lois correspondantes"}
 plot(democracy.lnorm, main = "Modèle Log-normal", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
 legend(x="topleft",
        legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
@@ -280,18 +231,19 @@ legend(x="topleft",
        col = c("#b7950b","#633974","red"),
        lwd= 2)
 
-
-```
-
-
-```{r, echo = FALSE, fig.align='center', out.width= "33%",fig.cap = "Estimations paramétriques des lois Log-normale et Gompertz. Les courbes en violet et en doré représentent l'estimation non paramétrique de la fonction de survie par Kaplan-Meier. Les rouge designe la fonction de survie estimée des lois Log-normale (à gauche) et Gompertz (à droite) à l'aide de survreg"}
 plot(democracy.weib, main = "Modèle Weibull", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type ="cumhaz")
 legend(x="topleft",
        legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
        lty =c(1,2,1,2,1,2),
        col = c("#b7950b","#633974","red"),
        lwd= 2)
+
+
 ```
+
+
+\newpage
+
 
 Nous observons d'après le graphique que 
 
@@ -307,7 +259,7 @@ Changement de paramétrisation avec R.
 df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
 
 modweib <- survreg(Surv(df$duration,delta)~df$regime,init = "Monarchy" ,dist='weibull')
-summary(modweib)
+#summary(modweib)
 modweib$coefficients/sqrt(diag(modweib$var)[-7]) # nombre de sigma pour s'annuler
 ```
 
