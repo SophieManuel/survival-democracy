@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.3.20)  26 MAR 2021 19:35
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.3.20)  27 MAR 2021 21:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -581,25 +581,16 @@ LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
 (/home/anas/.TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [3]
-Overfull \hbox (30.00006pt too wide) in alignment at lines 207--228
- [] [] [] [] [] [] 
- []
-
-
-Overfull \hbox (30.00006pt too wide) in alignment at lines 228--302
- [] [] [] [] [] [] 
- []
-
 LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
-332.
+256.
 (/home/anas/.TinyTeX/texmf-dist/tex/latex/lm/ts1lmtt.fd
 File: ts1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [4] [5]
 
-LaTeX Warning: Command \' invalid in math mode on input line 377.
+LaTeX Warning: Command \' invalid in math mode on input line 301.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 385--386
+Underfull \hbox (badness 10000) in paragraph at lines 309--310
 
  []
 
@@ -609,31 +600,57 @@ File: Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-5-1.pdf Grap
 hic file (type pdf)
 <use Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-5-1.pdf>
 Package pdftex.def Info: Presentation_finale_HMMA236_files/figure-latex/unnamed
--chunk-5-1.pdf  used on input line 401.
+-chunk-5-1.pdf  used on input line 325.
 (pdftex.def)             Requested size: 187.89867pt x 130.0837pt.
 <weib_lm.png, id=105, 555.07375pt x 231.86626pt>
 File: weib_lm.png Graphic file (type png)
 <use weib_lm.png>
-Package pdftex.def Info: weib_lm.png  used on input line 401.
+Package pdftex.def Info: weib_lm.png  used on input line 325.
 (pdftex.def)             Requested size: 187.901pt x 78.4903pt.
 [6 <./Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-5-1.pdf> <./
-weib_lm.png>] [7]
-<Presentation_finale_HMMA236_files/figure-latex/densit√©-1.pdf, id=133, 469.755
+weib_lm.png>]
+<Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-1.pdf, id=127, 
+469.755pt x 325.215pt>
+File: Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-1.pdf Grap
+hic file (type pdf)
+<use Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-1.pdf>
+Package pdftex.def Info: Presentation_finale_HMMA236_files/figure-latex/unnamed
+-chunk-8-1.pdf  used on input line 390.
+(pdftex.def)             Requested size: 155.01962pt x 107.32127pt.
+<Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-2.pdf, id=128, 
+469.755pt x 325.215pt>
+File: Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-2.pdf Grap
+hic file (type pdf)
+<use Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-2.pdf>
+Package pdftex.def Info: Presentation_finale_HMMA236_files/figure-latex/unnamed
+-chunk-8-2.pdf  used on input line 390.
+(pdftex.def)             Requested size: 155.01962pt x 107.32127pt.
+<Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-9-1.pdf, id=129, 
+469.755pt x 325.215pt>
+File: Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-9-1.pdf Grap
+hic file (type pdf)
+<use Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-9-1.pdf>
+Package pdftex.def Info: Presentation_finale_HMMA236_files/figure-latex/unnamed
+-chunk-9-1.pdf  used on input line 394.
+(pdftex.def)             Requested size: 155.01962pt x 107.32127pt.
+[7 <./Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-1.pdf> <./
+Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-8-2.pdf>]
+<Presentation_finale_HMMA236_files/figure-latex/densit√©-1.pdf, id=149, 469.755
 pt x 325.215pt>
 File: Presentation_finale_HMMA236_files/figure-latex/densit√©-1.pdf Graphic fil
 e (type pdf)
 <use Presentation_finale_HMMA236_files/figure-latex/densit√©-1.pdf>
 Package pdftex.def Info: Presentation_finale_HMMA236_files/figure-latex/densit√
-©-1.pdf  used on input line 478.
+©-1.pdf  used on input line 439.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[8]
-<Presentation_finale_HMMA236_files/figure-latex/Kaplan-Meier-1.pdf, id=138, 469
+[8 <./Presentation_finale_HMMA236_files/figure-latex/unnamed-chunk-9-1.pdf>]
+<Presentation_finale_HMMA236_files/figure-latex/Kaplan-Meier-1.pdf, id=162, 469
 .755pt x 325.215pt>
 File: Presentation_finale_HMMA236_files/figure-latex/Kaplan-Meier-1.pdf Graphic
  file (type pdf)
 <use Presentation_finale_HMMA236_files/figure-latex/Kaplan-Meier-1.pdf>
 Package pdftex.def Info: Presentation_finale_HMMA236_files/figure-latex/Kaplan-
-Meier-1.pdf  used on input line 486.
+Meier-1.pdf  used on input line 447.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [9 <./Presentation_finale_HMMA236_files/figure-latex/densit√©-1.pdf>] [10 <./Pr
 esentation_finale_HMMA236_files/figure-latex/Kaplan-Meier-1.pdf>] [11] [12] (./
@@ -643,13 +660,13 @@ nged.
 (rerunfilecheck)             Checksum: 12A0BB27D6F082D7C991EAD394FAF2CA;2045.
  ) 
 Here is how much of TeX's memory you used:
- 12790 strings out of 480962
- 190147 string characters out of 5907631
- 510878 words of memory out of 5000000
- 29749 multiletter control sequences out of 15000+600000
+ 12818 strings out of 480962
+ 191657 string characters out of 5907631
+ 510330 words of memory out of 5000000
+ 29772 multiletter control sequences out of 15000+600000
  454288 words of font info for 70 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 71i,12n,79p,378b,361s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 71i,12n,79p,490b,479s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/home/anas/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/home/anas/
 .TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/home/anas/.TinyTeX/texmf
 -dist/fonts/enc/dvips/lm/lm-mathex.enc}{/home/anas/.TinyTeX/texmf-dist/fonts/en
@@ -669,10 +686,10 @@ TeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></home/anas/.TinyTeX/texmf-dist
 blic/lm/lmtt10.pfb></home/anas/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmtti1
 0.pfb></home/anas/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm1
 0.pfb>
-Output written on Presentation_finale_HMMA236.pdf (12 pages, 314056 bytes).
+Output written on Presentation_finale_HMMA236.pdf (12 pages, 334352 bytes).
 PDF statistics:
- 238 PDF objects out of 1000 (max. 8388607)
- 198 compressed objects within 2 object streams
- 31 named destinations out of 1000 (max. 500000)
- 125 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 262 PDF objects out of 1000 (max. 8388607)
+ 215 compressed objects within 3 object streams
+ 33 named destinations out of 1000 (max. 500000)
+ 140 words of extra memory for PDF output out of 10000 (max. 10000000)
 

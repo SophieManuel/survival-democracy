@@ -78,7 +78,8 @@ bilan + autre perspectives envisageables
 La **durée de vie** (ou de survie) est le temps écoulé du début du suivi de l'individu (naissance) jusqu'à l'apparition de l'*évènement d'intérêt* (décès) pour les individus d'une population. On la note souvent $T$
   
   
-  Dans notre étude, nous utiliserons un jeu de données sur les chefs d'états en place dans le monde entre 1946 et 2008, soit environ 1800 chefs d'états de 202 pays différents sur plus d'un demi siècle. 
+  Dans notre étude, nous utiliserons un jeu de données sur les chefs d'états en place dans le monde entre 1946 et 2008, soit environ 1800 chefs d'états de 202 pays différents sur plus d'un demi siècle.  
+
   
   
 ```{r,out.width="50%",fig.align="center",echo = FALSE, include=TRUE}
@@ -90,15 +91,16 @@ df <- df %>% ungroup() %>% select(-cowcode2,-politycode, - end_year)
 sample <- sample_n(df,4)
 
 sample <- sample %>% select(-un_region_name,-leaderspellreg,-democracy, -un_continent_name)
-sample <- rename(sample,Gouv = ehead, Pays = ctryname, Régime = regime, "Date d'entrée" = start_year, Durée = duration, Statut = observed)
+sample <- rename(sample,Gouv = ehead, Pays = ctryname, "Type de régime" = regime, "Date d'entrée" = start_year, Durée = duration, Statut = observed)
 
-knitr::kable(sample,align = 'c')
+knitr::kable(sample,align = 'c', caption = "Extrait du jeu de données.")
 ```
   
-  Donc en termes de survie, les individus sont les chefs d'état, la durée de survie est la durée du mandat, l'évènement d'intérêt est la fin du mandat.
+
+Donc en termes de survie, les individus sont les chefs d'état, la durée de survie est la durée du mandat, l'évènement d'intérêt est la fin du mandat.
   
   
-  Puisque nous sommes dans le cadre des modèles de survie, nous n'avons pas toujours toutes les informations sur l'individu, dans le sens où son suivi dans l'étude peut être interrompu, c'est-à-dire que l'évènement d'intérêt n'est pas observé durant l'étude. On appelle ce phénomène la **censure**. Elle est codée comme une indicatrice de l'observation de l'évènement d'interêt : 1 si l'évènement est observé, 0 sinon.
+Puisque nous sommes dans le cadre des modèles de survie, nous n'avons pas toujours toutes les informations sur l'individu, dans le sens où son suivi dans l'étude peut être interrompu, c'est-à-dire que l'évènement d'intérêt n'est pas observé durant l'étude. On appelle ce phénomène la **censure**. Elle est codée comme une indicatrice de l'observation de l'évènement d'interêt : 1 si l'évènement est observé, 0 sinon.
 
 *Formule ?* 
  
@@ -210,7 +212,7 @@ knitr::include_graphics("weib_lm.png")
 # End graphic 
 ```
 
-Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de Weibull en passant par la transformation inverse du $\log$. Nous obtenons donc $\hat{\lambda}=\exp(-0.9621)=0.38$ et $\hat{\alpha}=0.612$. Notons qu'avec un $R^2$ de $0.985$ nous pouvons conclure que le modèle de Weibull est ajusté aux données de survie.
+Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de Weibull en passant par la transformation inverse du $\log$. Nous obtenons donc $\hat{\lambda}=\exp(-0.9621)=0.38$ et $\hat{\alpha}=0.612$. Notons qu'avec un $R^2$ de $0.985$, nous pouvons dire que sur notre jeu de données, les durées de vie des régimes (tout confondus) peut être décrite par une loi de Weibull
 
 
 
@@ -222,10 +224,10 @@ Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de
 
 \subsection{Modèle paramétrique avec covariables}
 \subsubsection{Par régime}
-
-Nous choisissons de répartir les régimes en deux classes : les régimes démocratiques et les régimes non-démocratiques.
+Les types de régimes peuvent être répartis en deux classes : les régimes démocratiques et les régimes non-démocratiques.
 Les régimes démocratiques comprennent les démocraties mixtes, parlementaires et présidentielles. Les régimes non-démocratiques comprennent les dictatures civiles, militaires et les monarchies.  
-Ceci introduit donc une covariable qu'on a nommé *Régime* Voici un extrait du nouveau tableau.
+Ceci introduit donc une covariable qu'on a nommé *Régime*, ses valeurs sont : $ \{Democracy, ~ Non- Democracy ~  \}$.  
+Voici un extrait du nouveau tableau.
 
 
 ```{r}
@@ -236,15 +238,18 @@ Ceci introduit donc une covariable qu'on a nommé *Régime* Voici un extrait du 
 ### Extrait du tableau
 ###
 sample_dem <- read.csv('sample_dem.csv')
-knitr::kable(sample_dem,align = 'c')
+knitr::kable(sample_dem,align = 'c', caption = "This is the table caption")
 ```
 
-Nous observons que le modèle de we
+Afin de savoir sur quel modèle baser notre analyse, Nous évaluons le critère AIC avec le estimateurs du maximum de vraisemblance issus de la régression en considérant 6 différentes distributions. 
 
-
-\newpage
-```{r, include = F}
+```{r, echo = F,fig.cap="Critère AIC par modèle"}
 library(flexsurv)
+
+#########################################
+## AIC  #### covariable : régime ########
+#########################################
+
 democracy.weib <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'weibull' )
 democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
 democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
@@ -252,17 +257,43 @@ democracy.lnorm <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, 
 democracy.ga <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gamma' )
 democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gompertz' )
 
-title <- c("Exponentiel", "Weibull", "Log-logistic", "Log-normal", "Gamma", "Gompertz")
-AIC <- c(democracy.exp$AIC, democracy.weib$AIC, democracy.llog$AIC, democracy.lnorm$AIC, democracy.ga$AIC, democracy.gomp$AIC)
+aic.table <- read.csv('aic_regime.csv')
+knitr::kable(aic.table,align = 'c')
 
-data.frame(title,AIC)
+
+```
+
+Le modèle Log-normal est celui dont le critère AIC est le plus petit . C'est sur ce modèle qu'on devrait baser notre étude. Cependant, une évaluation graphique des différents modèle nous suggère que la loi de Gompertz semble plus appropriée pour l'estimation des données de survie comme on peut voir sur les graphiques ci dessous.
+
+```{r, echo = FALSE, fig.show='hold', out.width="33%", fig.align='center'}
+plot(democracy.lnorm, main = "Modèle Log-normal", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
+legend(x="topleft",
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
+       lty =c(1,2,1,2,1,2),
+       col = c("#b7950b","#633974","red"),
+       lwd= 2)
+
+plot(democracy.gomp, main = "Modèle Gompertz", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
+legend(x="topleft",
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
+       lty =c(1,2,1,2,1,2),
+       col = c("#b7950b","#633974","red"),
+       lwd= 2)
+
+
 ```
 
 
+```{r, echo = FALSE, fig.align='center', out.width= "33%",fig.cap = "Estimations paramétriques des lois Log-normale et Gompertz. Les courbes en violet et en doré représentent l'estimation non paramétrique de la fonction de survie par Kaplan-Meier. Les rouge designe la fonction de survie estimée des lois Log-normale (à gauche) et Gompertz (à droite) à l'aide de survreg"}
+plot(democracy.weib, main = "Modèle Weibull", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type ="cumhaz")
+legend(x="topleft",
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
+       lty =c(1,2,1,2,1,2),
+       col = c("#b7950b","#633974","red"),
+       lwd= 2)
+```
 
-
-
-
+Nous observons d'après le graphique que 
 
 
 
