@@ -43,6 +43,7 @@ library(dplyr)
 library(survival)
 library(survminer)
 library(timereg)
+library(flexsurv)
 ```
 
 \section{Consignes}
@@ -201,6 +202,16 @@ result.lm <- lm(logLogSurvEst ~ logSurvTime)
 ```
 
 
+```{r,,fig.show="hold",fig.align='center',fig.cap="Sortie R de la regression linéaire. La droite verte est la droite des moindres carrés. (Intercept) estime l'ordonnée à l'origine et logSurTime estime la pente de la droite des moindres carrés.", out.width="40%"}
+# Graphic
+plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
+abline(result.lm, col = "#008080")
+knitr::include_graphics("weib_lm.png")
+# End graphic 
+```
+
+Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de Weibull en passant par la transformation inverse du $\log$. Nous obtenons donc $\hat{\lambda}=\exp(-0.9621)=0.38$ et $\hat{\alpha}=0.612$. Notons qu'avec un $R^2$ de $0.985$ nous pouvons conclure que le modèle de Weibull est ajusté aux données de survie.
+
 
 
 
@@ -224,41 +235,31 @@ Ceci introduit donc une covariable qu'on a nommé *Régime* Voici un extrait du 
 ###
 ### Extrait du tableau
 ###
-
+sample_dem <- read.csv('sample_dem.csv')
 knitr::kable(sample_dem,align = 'c')
 ```
 
-
-
+Nous observons que le modèle de we
 
 
 \newpage
 ```{r, include = F}
+library(flexsurv)
 democracy.weib <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'weibull' )
 democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
 democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
 democracy.lnorm <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'lognormal' )
 democracy.ga <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gamma' )
 democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gompertz' )
-#-2 * democracy.weib$loglik + 4
-#-2 * democracy.lnorm$loglik + 4
-#-2 * democracy.llog$loglik + 4
-#-2 * democracy.exp$loglik + 4
-library(flexsurv)
+
+title <- c("Exponentiel", "Weibull", "Log-logistic", "Log-normal", "Gamma", "Gompertz")
+AIC <- c(democracy.exp$AIC, democracy.weib$AIC, democracy.llog$AIC, democracy.lnorm$AIC, democracy.ga$AIC, democracy.gomp$AIC)
+
+data.frame(title,AIC)
 ```
 
 
 
-
-```{r,,fig.show="hold",fig.align='center',fig.cap="Sortie R de la regression linéaire. La droite verte est la droite des moindres carrés. (Intercept) estime l'ordonnée à l'origine et logSurTime estime la pente de la droite des moindres carrés.", out.width="40%"}
-# Graphic
-plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
-abline(result.lm, col = "#008080")
-knitr::include_graphics("weib_lm.png")
-# End graphic 
-```
-
-Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de Weibull en passant par la transformation inverse du $\log$. Nous obtenons donc $\hat{\lambda}=\exp(-0.9621)=0.38$ et $\hat{\alpha}=0.612$. Notons qu'avec un $R^2$ de $0.985$ nous pouvons conclure que le modèle de Weibull est ajusté aux données de survie.
 
 
 
