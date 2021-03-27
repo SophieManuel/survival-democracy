@@ -216,24 +216,24 @@ knitr::kable(aic.table,align = 'c', caption = "Critère AIC par modèle.")
 
 Le modèle Log-normal est celui dont le critère AIC est le plus petit . C'est sur ce modèle qu'on devrait baser notre étude. Cependant, une évaluation graphique des différents modèle nous suggère que la loi de Gompertz semble plus appropriée pour l'estimation des données de survie comme on peut voir sur les graphiques ci dessous.
 
-```{r, echo = FALSE, fig.show='hold', out.width="33%",fig.cap = "Estimations paramétriques et non paramétriques du hasard cumulé pour les modèles Log-normal, Gompertz et Weibull. Les courbes en violet et en doré représentent l'estimation non paramétrique de la fonction de survie par Kaplan-Meier. Les courbes enrouge designent à chaque fois la surive estimée des lois correspondantes"}
+```{r, echo = FALSE, fig.show='hold', out.width="33%",fig.cap = "Estimations paramétriques (Log-normal, Gompertz et Weibull) et non paramétriques du hasard cumulé. Les courbes en violet et en doré représentent l'estimation non paramétrique de la fonction de hasard cumulé. Les courbes en rouge designent à chaque fois le hasard cumulé des lois correspondantes"}
 plot(democracy.lnorm, main = "Modèle Log-normal", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
 legend(x="topleft",
-       legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","log-normale"),
        lty =c(1,2,1,2,1,2),
        col = c("#b7950b","#633974","red"),
        lwd= 2)
 
 plot(democracy.gomp, main = "Modèle Gompertz", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
 legend(x="topleft",
-       legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Gompertz"),
        lty =c(1,2,1,2,1,2),
        col = c("#b7950b","#633974","red"),
        lwd= 2)
 
 plot(democracy.weib, main = "Modèle Weibull", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#b7950b", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type ="cumhaz")
 legend(x="topleft",
-       legend = c("Régimes démocratiques","Régimes non-démocratiques","Survie log-normale"),
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Weibull"),
        lty =c(1,2,1,2,1,2),
        col = c("#b7950b","#633974","red"),
        lwd= 2)
