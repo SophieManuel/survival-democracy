@@ -35,7 +35,7 @@ output:
 \tableofcontents
 \newpage
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F, warning = F, message = F)
+knitr::opts_chunk$set(echo = F, warning = F, message = F, include = F)
 ```
 
 ```{r library}
@@ -43,6 +43,7 @@ library(dplyr)
 library(survival)
 library(survminer)
 library(timereg)
+library(flexsurv)
 ```
 
 \section{Consignes}
@@ -85,13 +86,13 @@ La **durée de vie** (ou de survie) est le temps écoulé du début du suivi de 
 df <- read.csv(file = 'dd.csv', sep = ",", header= TRUE)
 df <- as_tibble(df)
 
-df <- df %>% ungroup() %>% select(-cowcode2,-politycode, - end_year)
+df <- df %>% ungroup() %>% select(-cowcode2, -politycode, -end_year)
 sample <- sample_n(df,4)
 
-sample <- sample %>% select(-un_region_name,-leaderspellreg,-democracy, -un_continent_name)
-sample <- rename(sample,Gouv = ehead, Pays = ctryname, Régime = regime, "Date d'entrée" = start_year, Durée = duration, Statut = observed)
+sample <- sample %>% select(-un_region_name, -leaderspellreg, -un_continent_name)
+sample <- rename(sample, Gouv = ehead, Pays = ctryname, Démocratie = democracy, Régime = regime, "Date d'entrée" = start_year, Durée = duration, Statut = observed)
 
-knitr::kable(sample,align = 'c')
+knitr::kable(sample, align = 'c')
 ```
   
   Donc en termes de survie, les individus sont les chefs d'état, la durée de survie est la durée du mandat, l'évènement d'intérêt est la fin du mandat.
@@ -99,7 +100,6 @@ knitr::kable(sample,align = 'c')
   
   Puisque nous sommes dans le cadre des modèles de survie, nous n'avons pas toujours toutes les informations sur l'individu, dans le sens où son suivi dans l'étude peut être interrompu, c'est-à-dire que l'évènement d'intérêt n'est pas observé durant l'étude. On appelle ce phénomène la **censure**. Elle est codée comme une indicatrice de l'observation de l'évènement d'interêt : 1 si l'évènement est observé, 0 sinon.
 
-*Formule ?* 
  
   Dans notre cas, la colonne **Statut** représente la censure. On se retrouvera donc confronté à de la censure (aléatoire et fixe) à droite, ceci signifie que l'évènement d'intérêt ne sera pas observé avant la fin de l'étude. 
 Les cas de censures fixes sont les chefs d'état encore au pouvoir en 2008 (fin de l'étude).
@@ -143,7 +143,7 @@ h(x)= \dfrac{f(x)}{S(x)} = - \dfrac{d}{dx} \log \big(S(x) \big)
 $$
 \end{proposition}
 
-\subsection{ Modèle de Weibull}
+\subsection{Modèle de Weibull}
 
 
 
@@ -173,7 +173,7 @@ knitr::kable(sample_dem,align = 'c')
 
 \newpage
 ```{r, include = F}
-#democracy.weib <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'weibull' )
+democracy.weib <- flexsurvreg(Surv(duration, observed) ~ regime, data = df, dist = 'weibull' )
 #democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
 #democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
 #democracy.lnorm <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'lognormal' )
@@ -185,21 +185,33 @@ democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, d
 #-2 * democracy.llog$loglik + 4
 #-2 * democracy.exp$loglik + 4
 
-library(flexsurv)
-
+democracy.weib
 ```
 
 \paragraph{Par type de régime}
 
-```{r survreg_weibull, include = F}
+```{r survreg_weibull}
 df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
 
 modweib <- survreg(Surv(df$duration,delta)~df$regime,init = "Monarchy" ,dist='weibull')
 summary(modweib)
-modweib$coefficients/sqrt(diag(modweib$var)[-7]) # nombre de sigma pour s'annuler
 ```
+ 
 
-```{r densité, include = F}
+Nous effectuons les tests d'hypothèses suivants : $$\forall j \in \{1,5\}, \, \mathcal{H}_{0} :  \gamma_j=0 \, \, \text{vs} \, \, \mathcal{H}_1 : \gamma_j \neq 0$$
+
+Dans la colonne `Value` nous avons les estimateurs $\gamma_j$ des coefficients du modèle de survie accélérée. 
+
+La colonne `Std.error` donne les écart-types estimés $\hat{\sigma_j}, ~~\forall j \in \{1,5\}$, ils sont tous entre 0,19 et 0,2.
+
+La `z` correspond à la valeur observée de la statistique de test, i.e la valeur estimée divisée par l'écart-type estimé, pour chacun des estimateurs (pour l'estimateur $\hat{\gamma_1}$, on se situe à -5 $\hat{\sigma_1}$ de la valeur 0).
+
+La colonne `p` nous indique la $p$-value, c'est-à-dire la probabilité pour la statistique de test sous $\mathcal{H}_0$ de dépasser la valeur observée. Il s'agit du risque de première espèce, i.e le risque de rejeter $\mathcal{H}_{0}$ alors que $\mathcal{H}_{0}$ est vraie.
+
+Ici, nous pouvons observer des $p$-values très faibles. Nous rejetons donc fortement l'hypothèse nulle pour les tests, et nous en déduisons que les coefficients sont significativement différents de $0$.
+
+**On devrait le faire plutôt avec la fonction de Survie non ?**
+```{r densité}
 seq <- seq(0, 5, length.out = 100)
 yweib <- dweibull(seq, modweib$coefficients[1], modweib$scale)
 
@@ -230,8 +242,52 @@ ggsurvplot(fit_regime,
 
 
 
-\subsection{Modèle log-logistique}
+\subsection{Modèle Gompertz}
 \subsubsection{Fonction survreg}
+
+
+
+\subsection{Modèle non-paramétrique}
+\subsubsection{Modèle de cox}
+
+Le modèle de Cox exprime la fonction de risque instantané de décès en fonction du temps et des covariables.  
+
+L'hypothèse des risques proportionnels y est nécessaire à la validation du modèle.  
+
+Sous cette hypothèse et sous l'hypothèse de log-linéarité.  
+
+Nous avons utilisé  regime comme covariable avec comme réference la monarchie. Nous obtenons les résultats suivant : 
+
+```{r}
+df.s <- Surv(time = df$duration, event = df$observed)
+df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
+cox <- coxph(df.s~regime,data = df , method = "efron")
+cox
+#ggforest(cox, data = df, main="Rapport de risque")
+```
+
+Les démocraties représentent  entre 6 et 10 fois moins de chance de rester au pouvoir par rapport à la monarchie, tandis que les dictatures représentent entre 3 et 4 fois moins de chance rester au pouvoir.
+
+nous obtenons des $p$-values significatives sur toutes les modalités, ce qui signifie que aucun des coefficients n'est nul.
+
+
+
+\subsection{Comparaison}
+
+Comparons les résultats pour les deux types de modèles.
+On remarque que les coefficients sur le modèle de cox et des autres modèles paramétriques sont proches au centième près. On peut aussi ajouter que leur signe sont opposés (log?).
+De plus dans le modèle de cox les écart-types y sont un peu plus grand environ +0.3 et évidemment nous n'avons pas l'estimation des paramètres.
+
+
+cox
+$$
+h(t|Z)=h_0(t). exp(\theta^tZ)
+$$
+survie accélérée
+$$
+h(t|Z)=h_0(exp(\theta^tZ)). exp(\theta^tZ)
+$$
+
 
 \newpage
 \section{Conclusion}
