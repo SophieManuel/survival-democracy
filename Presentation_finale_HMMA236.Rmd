@@ -193,7 +193,7 @@ democracy.weib
 ```{r survreg_weibull}
 df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
 
-modweib <- survreg(Surv(df$duration,delta)~df$regime,init = "Monarchy" ,dist='weibull')
+modweib <- survreg(Surv(df$duration,delta)~df$regime,dist='weibull')
 summary(modweib)
 ```
  
@@ -261,32 +261,49 @@ Nous avons utilisé  regime comme covariable avec comme réference la monarchie.
 ```{r}
 df.s <- Surv(time = df$duration, event = df$observed)
 df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
-cox <- coxph(df.s~regime,data = df , method = "efron")
+cox <- coxph(df.s~regime,data = df, method = "efron")
 cox
 #ggforest(cox, data = df, main="Rapport de risque")
 ```
 
+Nous effectuons les tests d'hypothèses suivants : $$\forall j \in \{1,5\}, \, \mathcal{H}_{0} :  \alpha_j=0 \, \, \text{vs} \, \, \mathcal{H}_1 : \alpha_j \neq 0$$
+
+Dans la colonne `coef` nous avons les estimateurs $\gamma_j$ des coefficients du modèle de survie accélérée. 
+
+La colonne `exp(coef)` correspond au risque de décès relatif à l'exposition de la covariable de la ligne choisie. En d'autres termes cela correspond au rapport de risque entre la modalité sur la ligne en question et la modalité de référence (Monarchie).  
+
+La colonne `se(coef)` donne les écart-types estimés $\hat{\sigma_j}, ~~\forall j \in \{1,5\}$, ils sont tous entre 0,19 et 0,2.
+
+La `z` correspond à la valeur observée de la statistique de test, i.e la valeur estimée divisée par l'écart-type estimé, pour chacun des estimateurs (pour l'estimateur $\hat{\gamma_1}$, on se situe à 5 $\hat{\sigma_1}$ de la valeur 0).
+
+La colonne `p` nous indique la $p$-value, c'est-à-dire la probabilité pour la statistique de test sous $\mathcal{H}_0$ de dépasser la valeur observée. Il s'agit du risque de première espèce, i.e le risque de rejeter $\mathcal{H}_{0}$ alors que $\mathcal{H}_{0}$ est vraie.
+
 Les démocraties représentent  entre 6 et 10 fois moins de chance de rester au pouvoir par rapport à la monarchie, tandis que les dictatures représentent entre 3 et 4 fois moins de chance rester au pouvoir.
 
-nous obtenons des $p$-values significatives sur toutes les modalités, ce qui signifie que aucun des coefficients n'est nul.
+nous obtenons des $p$-values significatives sur toutes les modalités, ce qui signifie qu'aucun des coefficients n'est nul.
 
 
 
 \subsection{Comparaison}
 
 Comparons les résultats pour les deux types de modèles.
-On remarque que les coefficients sur le modèle de cox et des autres modèles paramétriques sont proches au centième près. On peut aussi ajouter que leur signe sont opposés (log?).
-De plus dans le modèle de cox les écart-types y sont un peu plus grand environ +0.3 et évidemment nous n'avons pas l'estimation des paramètres.
 
 
-cox
-$$
-h(t|Z)=h_0(t). exp(\theta^tZ)
-$$
-survie accélérée
-$$
-h(t|Z)=h_0(exp(\theta^tZ)). exp(\theta^tZ)
-$$
+```{r include = T}
+covariables <-  c("Dict. Civilie","Dict. Militaraire ","Dem. Parlementaire ","Dem. Mixe", "Dem. Présidentielle")
+coefficients_weibull <- -modweib$coeff[-1]/modweib$scale 
+ICL95 <- cox$coefficients -sqrt(diag(cox$var))*1.96 # bornes de l'IC 95% du coeff. de Z dans Cox
+ICH95 <- cox$coefficients +sqrt(diag(cox$var))*1.96 # estimation cox =0.176 [-0.38 ; 0.74] 
+AppartenanceIC <- (coefficients_weibull >= ICL95 || coefficients_weibull <= ICH95)
+D <- data.frame(row.names = covariables, coefficients_weibull, cox$coefficients, ICL95, ICH95, AppartenanceIC)
+knitr::kable(D, align = 'c')
+```
+On voit que les estimations sont assez différentes entre les coefficients estimés avec le modèle log-linéaire de weibull et les coefficients estimés dans le modèle de Cox. 
+
+Cependant, l'imprécision de l'estimation (écarts-type estimés sont environ égaux à 0.22 pour les coefficients de modèle de Cox) ne permet pas de conclure à une différence significative.
+
+De plus dans le modèle de Cox les écart-types y sont un peu plus grand environ +0.3.
+
 
 
 \newpage
