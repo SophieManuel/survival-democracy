@@ -402,7 +402,7 @@ knitr::kable(Dweib, align = 'c')
 Comparons, le modèle de cox avec celui log-normal cette fois.
 ```{r}
 coefficients_lognorm <- -modlnorm$coeff[-1]
-AppartenanceIC <- (coefficients_lnorm >= ICL95 || coefficients_lnorm <= ICH95)
+AppartenanceIC <- (coefficients_lognorm >= ICL95 || coefficients_lognorm <= ICH95)
 Dlnorm <- data.frame(row.names = covariables, coefficients_lognorm, cox$coefficients, ICL95, ICU95, AppartenanceIC)
 knitr::kable(Dlnorm, align = 'c')
 ```
