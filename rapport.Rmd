@@ -1,0 +1,436 @@
+---
+title: "Présentation HMMA236"
+subtitle: "Démocraties et Dictatures"
+author: 
+ - "Sophie Manuel"
+ - "Anas Zakroum"
+date: "21/03/2021"
+header-includes:
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyhead[L]{Démocraties et dictatures}
+  - \fancyhead[R]{\emph{M1 - Biostatistique}}
+  - \usepackage{dsfont}
+  - \usepackage{subfig}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{amsthm}
+  - \usepackage{amsmath}
+output:
+  pdf_document: 
+    toc_depth: 5
+    number_sections: yes
+    keep_tex: yes
+    extra_dependencies: dsfont
+---
+\newtheorem{definition}{Définition}
+\newtheorem{exemple}{Exemple}
+\newtheorem{corollary}{Corollaire}
+\newtheorem*{proposition}{Proposition}
+\newtheorem{lemma}{Lemme}
+\newtheorem*{demonstration}{Démonstration}
+\newtheorem{remark}{Remarque}
+\newtheorem{propetie}{Propriété}
+\newpage
+\tableofcontents
+\newpage
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+```
+
+```{r library}
+library(dplyr)
+library(survival)
+library(survminer)
+library(timereg)
+library(flexsurv)
+```
+
+
+\section{Introduction}
+
+  Dans ce rapport, notre objectif est de comparer des modèles paramétriques et non-paramétriques sur un jeu de données ainsi que l'influence d'une covariable sur la survie. Nous nous appuyons sur le travail réalisé au cours du premier semestre. [lien]  
+  
+Dans notre étude, nous utiliserons un jeu de données sur les chefs d'états en place dans le monde entre 1946 et 2008, soit environ 1800 chefs d'états de 202 pays différents sur plus d'un demi siècle.  
+
+
+```{r,out.width="50%",fig.align="center",echo = FALSE, include=TRUE}
+# Read file
+df <- read.csv(file = 'dd.csv', sep = ",", header= TRUE)
+df <- as_tibble(df)
+
+df <- df %>% ungroup() %>% select(-cowcode2,-politycode, - end_year)
+sample <- sample_n(df,4)
+
+sample <- sample %>% select(-un_region_name,-leaderspellreg,-democracy, -un_continent_name)
+sample <- rename(sample,Gouv = ehead, Pays = ctryname, "Type de régime" = regime, "Date d'entrée" = start_year, Durée = duration, Statut = observed)
+
+knitr::kable(sample,align = 'c', caption = "Extrait du jeu de données.")
+```
+  
+
+Les individus observés sont les chefs d'états.  
+L'événement d'intérêt correspond à la destitution de leurs fonctions.  
+Les \textit{durées de vie} considérées sont le temps écoulé du début du suivi de l'individu (\textit{i.e année de début du mandat}) jusqu'à l'apparition de l'*évènement d'intérêt* (\textit{i.e année de la destitution})  
+Le jeu de donnée contient des cas de censure fixe et aléatoire (colonne Statut). La censure fixe correspond au chefs d'état encore au pouvoir à la fin de l'étude. La censure aléatoire survient quand un chef d'état décède pendant son mandat.  
+Les durées sont comptées en années.
+
+Comme la censure est codée par une indicatrice, nous pouvons calculer numériquement le taux de censure de l'échantillon:
+```{r taux_de_censure, echo = T}
+n <- length(df$ehead) #nombre d'individus
+delta <- df$observed #vecteur des censures
+pourcentage_censure <- 1-sum(delta)/n
+cat("Pourcentage de censure :", pourcentage_censure*100, "%")
+```
+L'échantillon comporte environ $19 \%$ de censure, ce qui représente 340 individus censurés sur les plus de 1 800.
+Le jeu de données est donc adapté à l'analyse de survie, car il dispose de bien plus d'occurence de l'événement d'intérêt que de censure.
+ 
+\newpage
+\section{Analyse des données}
+
+
+Dans les modèles de survie paramétriques, le temps est supposé suivre une certaine distribution dont la fonction de densité de probabilité $f(t)$ peut être exprimée en fonction de paramètres inconnus. Une fois qu'une fonction de densité de probabilité est désignée la variable de durée, les fonctions de survie et de risque correspondantes peuvent être déterminées.  
+Les fonctions de survie $S(x)$ et de risque instantanné $h(x)$ sont reliées de la manière suivante:
+
+\begin{proposition}
+Soit $X : \Omega \longrightarrow \mathbb{R}_+$ une variable aléatoire de densité $f$, de fonction de survie $S$ et de risque instantanné $h$. Alors, on a les relations suivantes :
+$$
+h(x)= \dfrac{f(x)}{S(x)} = - \dfrac{d}{dx} \log \big(S(x) \big)
+$$
+\end{proposition}
+
+
+\subsection{Modèle de Weibull sans covariables}
+Le modèle de Weibull est un modèle largement utilisé en analyse de survie pour son interpretabilité et pour ses propriétés.
+La fonction de risque instantanné pour une loi de Weibull$(\alpha,\lambda)$ avec $\alpha,\lambda >0$ est $h(x) = \alpha \lambda x^{\alpha -1}$.  
+La fonction de survie est $S(x) = e^{-\lambda x ^{\alpha}}$  
+Le modèle de Weibull possède les propriétés suivantes :
+\begin{propetie}
+Soit $X : \Omega \longrightarrow \mathbb{R}_+$ une variable aléatoire suivant une loi de Weibull de paramètres $\alpha,\lambda > 0$ de fonction de risque instantanné $h$. Alors, \\
+$$
+S(x) = e^{-\lambda x ^\alpha} \Rightarrow -\log(S(x)) = \lambda x ^{\alpha} \Rightarrow \log(-\log(S(x))) = \log(\lambda) + \alpha \log(x)
+$$
+\end{propetie}
+  
+
+La première prorpriété indique la linéarité de $log(-log(S(x)))$ en $log(x)$. Et donc, couplée à l'estimateur de la survie de Kaplan Meier dont le calcul est possible grâce au données, elle permet l'évaluation graphique de la validité du modèle.
+
+En utilisant l'estimateur de Kaplan-Meier, nous allons ajuster un modèle de régression linéaire sur les données de survie:
+
+```{r}
+
+############################################################
+##### Calcul log log S + plot ######### sans covariables ###
+############################################################
+result.km <- survfit(Surv(duration, observed) ~ 1, data = df)
+survEst <- result.km$surv
+survTime <- result.km$time
+logLogSurvEst <- log(-log(survEst))
+logSurvTime <- log(survTime)
+result.lm <- lm(logLogSurvEst ~ logSurvTime)
+
+#plot 
+#plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
+#abline(result.lm, col = "#6960EC")
+```
+
+
+```{r,,fig.show="hold",fig.align='center',fig.cap="Sortie R de la regression linéaire. La droite verte est la droite des moindres carrés. (Intercept) estime l'ordonnée à l'origine et logSurTime estime la pente de la droite des moindres carrés.", out.width="40%"}
+# Graphic
+plot(logLogSurvEst ~ logSurvTime, ylab = expression(log(log(hat(S(x))))), xlab = expression(log(x)),col ="#F75D59"  )
+abline(result.lm, col = "#008080")
+knitr::include_graphics("weib_lm.png")
+# End graphic 
+```
+
+Ainsi, nous pouvons récupérer la valeur estimée des paramètres du modèle de Weibull en passant par la transformation inverse du $\log$. Nous obtenons donc $\hat{\lambda}=\exp(-0.9621)=0.38$ et $\hat{\alpha}=0.612$. Notons qu'avec un $R^2$ de $0.985$, nous pouvons dire que sur notre jeu de données, les durées de vie des régimes (tout confondus) peut être décrite par une loi de Weibull
+
+
+
+
+
+
+\subsection{Modèle paramétrique avec covariables}
+\subsubsection{Par régime}
+Les types de régimes peuvent être répartis en deux classes : les régimes démocratiques et les régimes non-démocratiques.
+Les régimes démocratiques comprennent les démocraties mixtes, parlementaires et présidentielles. Les régimes non-démocratiques comprennent les dictatures civiles, militaires et les monarchies.  
+Ceci introduit donc une covariable qu'on a nommé *Régime*,
+Voici un extrait du nouveau tableau.
+
+
+```{r}
+#########################################################
+################ Survreg  #### covariables ##############
+#########################################################
+###
+### Extrait du tableau
+###
+sample_dem <- read.csv('sample_dem.csv')
+knitr::kable(sample_dem,align = 'c', caption = "Nouvel extrait du tableau")
+```
+
+Afin de savoir sur quel modèle baser notre analyse, Nous évaluons le critère AIC avec le estimateurs du maximum de vraisemblance issus de la régression en considérant 6 différentes distributions. 
+
+```{r, echo = F,fig.cap="Critère AIC par modèle"}
+library(flexsurv)
+
+#########################################
+## AIC  #### covariable : régime ########
+#########################################
+
+democracy.weib <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'weibull' )
+democracy.llog <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'llogis' )
+democracy.exp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'exponential' )
+democracy.lnorm <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'lognormal' )
+democracy.ga <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gamma' )
+democracy.gomp <- flexsurvreg(Surv(duration, observed) ~ democracy, data = df, dist = 'gompertz' )
+
+aic.table <- read.csv('aic_regime.csv')
+knitr::kable(aic.table,align = 'c', caption = "Critère AIC par modèle.")
+
+
+```
+
+Le modèle Log-normal est celui dont le critère AIC est le plus petit . C'est sur ce modèle qu'on devrait baser notre étude. Cependant, une évaluation graphique des différents modèle nous suggère que la loi de Gompertz semble plus appropriée pour l'estimation des données de survie comme on peut voir sur les graphiques ci dessous.
+
+```{r, echo = FALSE, fig.show='hold', out.width="33%",fig.cap = "Estimations paramétriques (Log-normal, Gompertz et Weibull) et non paramétriques du hasard cumulé. Les courbes en violet et en vert représentent l'estimation non paramétrique de la fonction de hasard cumulé. Les courbes en rouge designent à chaque fois le hasard cumulé des lois correspondantes"}
+plot(democracy.lnorm, main = "Modèle Log-normal", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz",col = "#dc143c")
+legend(x="topleft",
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","log-normale"),
+       lty =c(1,2,1,2,1,2),
+       col = c("#03B439","#633974","#dc143c"),
+       lwd= 2)
+
+plot(democracy.gomp, main = "Modèle Gompertz", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz", col ="#dc143c")
+legend(x="topleft",
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Gompertz"),
+       lty =c(1,2,1,2,1,2),
+       col = c("#03B439","#633974","#dc143c"),
+       lwd= 2)
+
+plot(democracy.weib, main = "Modèle Weibull", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type ="cumhaz", col ="#dc143c")
+legend(x="topleft",
+       legend = c("Régimes démocratiques","Régimes non-démocratiques","Weibull"),
+       lty =c(1,2,1,2,1,2),
+       col = c("#03B439","#633974","#dc143c"),
+       lwd= 2)
+
+
+```
+
+
+\newpage
+
+
+
+
+\subsubsection{Par type de régime}
+
+  Maintenant, passons dans le vif du sujet en regardant l'estimatition de nos données avec des estimateurs paramétriques, ayant la log-linéarité.
+Afin de savoir sur quel modèle baser notre analyse, nous évaluons le critère AIC avec les estimateurs du maximum de vraisemblance issus de la régression en considérant six distributions différentes.
+```{r,echo=F, include = T}
+regime.weib <- flexsurvreg(Surv(duration, observed) ~ regime, data = df, dist = 'weibull' )
+regime.llog <- flexsurvreg(Surv(duration, observed) ~ regime,  data = df, dist = 'llogis' )
+regime.exp <- flexsurvreg(Surv(duration, observed) ~ regime, data = df, dist = 'exponential' )
+regime.lnorm <- flexsurvreg(Surv(duration, observed) ~ regime, data = df, dist = 'lognormal' )
+regime.ga <- flexsurvreg(Surv(duration, observed) ~ regime, data = df, dist = 'gamma' )
+regime.gomp <- flexsurvreg(Surv(duration, observed) ~ regime,  data = df, dist = 'gompertz' )
+aicweib <- -2 * regime.weib$loglik + 4
+aiclnorm <- -2 * regime.lnorm$loglik + 4
+aicllog <- -2 * regime.llog$loglik + 4
+aicexp <- -2 * regime.exp$loglik + 4
+aicga <- -2 * regime.ga$loglik + 4
+aicgomp <- -2 * regime.gomp$loglik + 4
+aic <- c(aicweib, aiclnorm, aicllog, aicexp, aicga, aicgomp)
+distrib <- c("Weibull", "Log-normale", "Log-logistique", "Exponentiel", "Gamma", "Gompertz")
+aicreg <- data.frame(aic, row.names = distrib)
+knitr::kable(t(aicreg),align = 'c')
+```
+
+
+
+
+  On constate, sans vraiment trop de surprise, au vu du fort lien entre la covariable régime et la covariable démocratie, que les résultats sont similaires à l'exemple précédent. En effet, le modèle log-normal est toujours celui possédant le plus petit AIC. De plus, le modèle de Gompertz semble toujours graphiquement le meilleur modèle de ceux qu'on a pu tester, comme on peut le voir ci-dessous. 
+```{r}
+par(mfrow = c(1,3))
+plot(regime.weib,  type = "cumhaz", xlab = "Années", ylab = "Hasard cumulés", main = "Weibull")
+plot(regime.lnorm,  type = "cumhaz", xlab = "Années", main = "Log-normal")
+plot(regime.gomp, type = "cumhaz", xlab = "Années", main = "Gompertz" )
+```
+
+Pour notre étude nous choisirons de regarder notre jeu de données selon la loi de Weibull qui n'est pas un des meilleurs modèles. Puis nous analyserons notre jeu de données selon la distribution de la loi log-normale qui semble être une des meilleures, voire la meilleure. Ainsi nous pourrons les comparer pour voir si il a des différences significatives.
+
+
+
+Pour notre étude nous choisirons de regarder notre jeu de données selon la loi de Weibull qui n'est pas un des meilleurs modèles. Puis nous analyserons notre jeu de données selon la distribution de la loi log-normale qui semble être une des meilleures, voire la meilleure. Ainsi nous pourrons les comparer pour voir si il a des différences significatives.
+
+\paragraph{Modèle de Weibull avec covariables}
+
+```{r}
+df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
+modweib <- survreg(Surv(df$duration,delta)~df$regime,dist='weibull')
+summary(modweib)
+```
+
+
+
+
+Nous effectuons les tests d'hypothèses suivants : $$\forall j \in \{1,5\}, \, \mathcal{H}_{0} :  \gamma_j=0 \, \, \text{vs} \, \, \mathcal{H}_1 : \gamma_j \neq 0$$
+
+Dans la colonne `Value` nous avons les estimateurs $\gamma_j$ des coefficients du modèle de survie accélérée. 
+
+La colonne `Std.error` donne les écart-types estimés $\hat{\sigma_j}, ~~\forall j \in \{1,5\}$, ils sont tous entre 0,19 et 0,2.
+
+La `z` correspond à la valeur observée de la statistique de test, i.e la valeur estimée divisée par l'écart-type estimé, pour chacun des estimateurs (pour l'estimateur $\hat{\gamma_1}$, on se situe à -5 $\hat{\sigma_1}$ de la valeur 0).
+
+La colonne `p` nous indique la $p$-value, c'est-à-dire la probabilité pour la statistique de test sous $\mathcal{H}_0$ de dépasser la valeur observée. Il s'agit du risque de première espèce, i.e le risque de rejeter $\mathcal{H}_{0}$ alors que $\mathcal{H}_{0}$ est vraie.
+
+Ici, nous pouvons observer des $p$-values très faibles. Nous rejetons donc fortement l'hypothèse nulle pour les tests, et nous en déduisons que les coefficients sont significativement différents de $0$.
+
+**On devrait le faire plutôt avec la fonction de Survie non ?**
+```{r, out.width="50%", fig.align='center'}
+seq <- seq(0, 5, length.out = 100)
+yweib <- dweibull(seq, modweib$coefficients[1], modweib$scale)
+
+hist(df$duration, breaks = 50, freq = F, main = "", ylim = c(0,1.6))
+lines(density(df$duration), col ="blue") # méthode à noyau
+lines(seq, yweib, type = "l", col = "red")
+
+```
+
+
+
+Nous avons choisi la monarchie comme référent (`Intercept`) car c'est la modalité pour laquelle les duréees de vies sont les plus longues en moyenne comme on peut le voir sur une représentation graphique utilisant un estimateur non-paramétrique de Kaplan-Meier. (ou on fait un histogramme)
+
+
+
+
+\paragraph{Modèle de Weibull avec covariables}
+
+```{r survreg_lnorm}
+df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
+
+modlnorm <- survreg(Surv(df$duration,delta)~df$regime,dist='lognormal')
+summary(modlnorm)
+```
+ 
+
+Nous effectuons les mêmes tests d'hypothèses que précédemment : $$\forall j \in \{1,5\}, \, \mathcal{H}_{0} :  \gamma_j=0 \, \, \text{vs} \, \, \mathcal{H}_1 : \gamma_j \neq 0$$
+
+Ici, nous pouvons observer des $p$-values très faibles. Nous rejetons donc fortement l'hypothèse nulle pour les tests, et nous en déduisons que les coefficients sont significativement différents de $0$.
+
+Si on compare les 2 modèles paramétriques entre eux, on constate que les estimateurs sont différents en moyenne d'environ 2 dixièmes, mais les écrat-types sont plus petits dans le modèle log-linéaire
+
+
+\newpage
+
+
+\subsection{Modèle non-paramétrique}
+\subsubsection{Modèle de cox}
+
+Le modèle de Cox exprime la fonction de risque instantané de décès en fonction du temps et des covariables.  
+
+L'hypothèse des risques proportionnels y est nécessaire à la validation du modèle.  
+
+Sous cette hypothèse et sous l'hypothèse de log-linéarité.  
+
+Nous avons utilisé  regime comme covariable avec comme réference la monarchie. Nous obtenons les résultats suivant : 
+
+```{r}
+df.s <- Surv(time = df$duration, event = df$observed)
+df$regime <- factor(df$regime, levels = c("Monarchy","Civilian Dict","Military Dict","Parliamentary Dem","Mixed Dem", "Presidential Dem"))
+cox <- coxph(df.s~regime,data = df, method = "efron")
+summary(cox)
+#ggforest(cox, data = df, main="Rapport de risque")
+```
+
+
+
+
+
+
+Nous effectuons les tests d'hypothèses suivants : $$\forall j \in \{1,5\}, \, \mathcal{H}_{0} :  \alpha_j=0 \, \, \text{vs} \, \, \mathcal{H}_1 : \alpha_j \neq 0$$
+
+Dans la colonne `coef` nous avons les estimateurs $\gamma_j$ des coefficients du modèle de survie accélérée. 
+
+La colonne `exp(coef)` correspond au risque de décès relatif à l'exposition de la covariable de la ligne choisie. En d'autres termes cela correspond au rapport de risque entre la modalité sur la ligne en question et la modalité de référence (Monarchie).  
+
+La colonne `se(coef)` donne les écart-types estimés $\hat{\sigma_j}, ~~\forall j \in \{1,5\}$, ils sont tous entre 0,19 et 0,2.
+
+La `z` correspond à la valeur observée de la statistique de test, i.e la valeur estimée divisée par l'écart-type estimé, pour chacun des estimateurs (pour l'estimateur $\hat{\gamma_1}$, on se situe à 5 $\hat{\sigma_1}$ de la valeur 0).
+
+La colonne `p` nous indique la $p$-value, c'est-à-dire la probabilité pour la statistique de test sous $\mathcal{H}_0$ de dépasser la valeur observée. Il s'agit du risque de première espèce, i.e le risque de rejeter $\mathcal{H}_{0}$ alors que $\mathcal{H}_{0}$ est vraie.
+
+Les démocraties représentent  entre 6 et 10 fois moins de chance de rester au pouvoir par rapport à la monarchie, tandis que les dictatures représentent entre 3 et 4 fois moins de chance rester au pouvoir.
+
+nous obtenons des $p$-values significatives sur toutes les modalités, ce qui signifie qu'aucun des coefficients n'est nul.
+
+
+
+\subsection{Comparaison}
+
+Comparons les résultats pour les deux types de modèles.
+
+
+
+
+```{r include = T}
+covariables <-  c("Dict. Civilie","Dict. Militaraire ","Dem. Parlementaire ","Dem. Mixe", "Dem. Présidentielle")
+coefficients_weibull <- -modweib$coeff[-1]/modweib$scale 
+ICL95 <- cox$coefficients -sqrt(diag(cox$var))*1.96 # bornes de l'IC 95% du coeff. de Z dans Cox
+ICU95 <- cox$coefficients +sqrt(diag(cox$var))*1.96 # estimation cox =0.176 [-0.38 ; 0.74] 
+AppartenanceIC <- (coefficients_weibull >= ICL95 || coefficients_weibull <= ICH95)
+Dweib <- data.frame(row.names = covariables, coefficients_weibull, cox$coefficients, ICL95, ICU95, AppartenanceIC)
+knitr::kable(Dweib, align = 'c')
+```
+
+
+ On voit que les estimations sont assez différentes entre les coefficients estimés avec le modèle log-linéaire de weibull et les coefficients estimés dans le modèle de Cox. Effectivement, les coefficients du modèle de Weibull sont parfois à assez proche des bornes de l'intervalle de confiance à $95\%$ des coefficients du modèle de cox.
+
+  Cependant, l'imprécision de l'estimation (écarts-type estimés sont environ égaux à 0.22 pour les coefficients de modèle de Cox) ne permet pas de conclure à une différence significative au risque de $5\%$. Donc, on ne peut pas rejeter ce modèle.
+
+#De plus dans le modèle de Cox les écart-types y sont un peu plus grand environ +0.3.
+
+Comparons, le modèle de cox avec celui log-normal cette fois.
+```{r}
+coefficients_lognorm <- -modlnorm$coeff[-1]
+AppartenanceIC <- (coefficients_lognorm >= ICL95 || coefficients_lognorm <= ICH95)
+Dlnorm <- data.frame(row.names = covariables, coefficients_lognorm, cox$coefficients, ICL95, ICU95, AppartenanceIC)
+knitr::kable(Dlnorm, align = 'c')
+```
+  On remarque que les coefficients de ces deux modèles sont plus proches que ce qu'on a pu observer précédemment avec le modèle de Weibull, surtout en ce qui concerne les démocraties. 
+
+  Cependant, l'imprécision de l'estimation (écarts-type estimés sont environ égaux à 0.22 pour les coefficients de modèle de Cox) ne permet pas de conclure à une différence significative au risque de $5\%$. Donc, on ne peut pas rejeter ce modèle.
+  Toutefois, on peut noter que si on baisse le risque, le modèle de weibull sera rejeter avant celui log-normal. Docn il semble effectivement plus fiable comme on a pu le deviner avec l'AIC calculé initialement. 
+
+\newpage
+\section{Conclusion}
+
+  Tous les modèles arrivent à la conclusion avec la covariable régime que tous les coefficients sont très fortement non-nuls. Donc ils le sont donc aussi au risque de $5\%$.
+On en déduit donc que le type de régime joue un rôle significatif sur la survie. 
+
+  Nous avons utilisé une méthode non-paramétrique (modèle de Cox) servant à valider ou invalider la méthode paramétrique (Weibull, log-normal...). Avec ces comparaisons, nous avons rejeté aucun des deux modèles. Toutefois, il semblerait que le modèle log-normal soit meilleur.
+  On peut quand même penser qu'on puisse trouver de meilleurs modèles au vu des graphiques.
+
+  Quant à l'utilisation du modèle de Cox pour valider ou invalider un modèle, on peut la remettre en cause. En effet, dans notre projet du semestre dernier, le modèle de cox ne vérifier pas toutes les hypothèses, dont celle des risques proportionnels. Dans ce cas il faudrait prendre un modèle non-paramétrique qui prend en compte la dépendance au temps de notre covariable.
+
+\newpage 
+\section{Annexes et références}
+  
+  Références :
+Cheibub, José Antonio, Jennifer Gandhi, and James Raymond Vreeland. 2010. “Democracy and Dictatorship Revisited.” Public Choice, vol. 143, no. 2-1, pp. 67-101.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
