@@ -46,3 +46,9 @@ vignettes/*.pdf
 *.pdf
 *.tex
 report.log
+
+
+*.aux
+*.log
+*.out
+*.toc
