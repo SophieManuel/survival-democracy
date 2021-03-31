@@ -49,15 +49,11 @@ library(flexsurv)
 
 \section{Introduction}
 
-  Dans ce rapport, notre objectif est de comparer des modèles paramétriques et non-paramétriques sur un jeu de données ainsi que l'influence d'une covariable sur la survie. Nous nous appuyons sur le travail réalisé au cours du premier semestre. [lien]
- 
-La \textit{durée de vie} est le temps écoulé du début du suivi de l'individu (naissance) jusqu'à l'apparition de l'*évènement d'intérêt* (décès) pour les individus d'une population.
+  Dans ce rapport, notre objectif est de comparer des modèles paramétriques et non-paramétriques sur un jeu de données ainsi que l'influence d'une covariable sur la survie. Nous nous appuyons sur le travail réalisé au cours du premier semestre. [lien]  
   
-  
-  Dans notre étude, nous utiliserons un jeu de données sur les chefs d'états en place dans le monde entre 1946 et 2008, soit environ 1800 chefs d'états de 202 pays différents sur plus d'un demi siècle.  
+Dans notre étude, nous utiliserons un jeu de données sur les chefs d'états en place dans le monde entre 1946 et 2008, soit environ 1800 chefs d'états de 202 pays différents sur plus d'un demi siècle.  
 
-  
-  
+
 ```{r,out.width="50%",fig.align="center",echo = FALSE, include=TRUE}
 # Read file
 df <- read.csv(file = 'dd.csv', sep = ",", header= TRUE)
@@ -73,37 +69,21 @@ knitr::kable(sample,align = 'c', caption = "Extrait du jeu de données.")
 ```
   
 
-Les individus étudiés sont les chefs d'états. Le phénomène d'intêret est 
-  
-  
-Puisque nous sommes dans le cadre des modèles de survie, nous n'avons pas toujours toutes les informations sur l'individu, dans le sens où son suivi dans l'étude peut être interrompu, c'est-à-dire que l'évènement d'intérêt n'est pas observé durant l'étude. On appelle ce phénomène la **censure**. Elle est codée comme une indicatrice de l'observation de l'évènement d'interêt : 1 si l'évènement est observé, 0 sinon.
+Les individus observés sont les chefs d'états.  
+L'événement d'intérêt correspond à la destitution de leurs fonctions.  
+Les \textit{durées de vie} considérées sont le temps écoulé du début du suivi de l'individu (\textit{i.e année de début du mandat}) jusqu'à l'apparition de l'*évènement d'intérêt* (\textit{i.e année de la destitution})  
+Le jeu de donnée contient des cas de censure fixe et aléatoire (colonne Statut). La censure fixe correspond au chefs d'état encore au pouvoir à la fin de l'étude. La censure aléatoire survient quand un chef d'état décède pendant son mandat.  
+Les durées sont comptées en années.
 
-*Formule ?* 
- 
-  Dans notre cas, la colonne **Statut** représente la censure. On se retrouvera donc confronté à de la censure (aléatoire et fixe) à droite, ceci signifie que l'évènement d'intérêt ne sera pas observé avant la fin de l'étude. 
-Les cas de censures fixes sont les chefs d'état encore au pouvoir en 2008 (fin de l'étude).
-Les cas de censures aléatoires sont les décès des chefs de gouvernements pendant leur mandat.
-  
-  
-  Avant de commencer notre étude vérifions ce jeu de données est raisonnable (suffisamment de données) pour interpréter nos futurs résultats.
-  
-Pour cela calculons le pourcentage de censure de l'échantillon.
+Comme la censure est codée par une indicatrice, nous pouvons calculer numériquement le taux de censure de l'échantillon:
 ```{r taux_de_censure, echo = T}
 n <- length(df$ehead) #nombre d'individus
 delta <- df$observed #vecteur des censures
 pourcentage_censure <- 1-sum(delta)/n
 cat("Pourcentage de censure :", pourcentage_censure*100, "%")
 ```
-On observe que le pourcentage de données censurées dans l'échantillon est d'environ $19 \%$ ce qui représente 340 individus censurés sur les plus de 1 800. On peut donc raisonnablement se dire que ce jeu de données est adapté à de l'analyse de survie.
-
- 
- Dans notre étude nous avons choisi de regarder l'influence du type de régime sur la durée du mandat d'un chef d'état. La covariable que nous avons choisie d'étudier est qualitative dont les modalités sont : 
-  - la monarchie
-  - la dictature civile
-  - la dictature militaire
-  - la démocratie parlementaire
-  - la démocratie présidentielle
-  - et la démocratie mixte.
+L'échantillon comporte environ $19 \%$ de censure, ce qui représente 340 individus censurés sur les plus de 1 800.
+Le jeu de données est donc adapté à l'analyse de survie, car il dispose de bien plus d'occurence de l'événement d'intérêt que de censure.
  
 \newpage
 \section{Analyse des données}
@@ -213,26 +193,26 @@ knitr::kable(aic.table,align = 'c', caption = "Critère AIC par modèle.")
 
 Le modèle Log-normal est celui dont le critère AIC est le plus petit . C'est sur ce modèle qu'on devrait baser notre étude. Cependant, une évaluation graphique des différents modèle nous suggère que la loi de Gompertz semble plus appropriée pour l'estimation des données de survie comme on peut voir sur les graphiques ci dessous.
 
-```{r, echo = FALSE, fig.show='hold', out.width="33%",fig.cap = "Estimations paramétriques (Log-normal, Gompertz et Weibull) et non paramétriques du hasard cumulé. Les courbes en violet et en doré représentent l'estimation non paramétrique de la fonction de hasard cumulé. Les courbes en rouge designent à chaque fois le hasard cumulé des lois correspondantes"}
-plot(democracy.lnorm, main = "Modèle Log-normal", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
+```{r, echo = FALSE, fig.show='hold', out.width="33%",fig.cap = "Estimations paramétriques (Log-normal, Gompertz et Weibull) et non paramétriques du hasard cumulé. Les courbes en violet et en vert représentent l'estimation non paramétrique de la fonction de hasard cumulé. Les courbes en rouge designent à chaque fois le hasard cumulé des lois correspondantes"}
+plot(democracy.lnorm, main = "Modèle Log-normal", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz",col = "#dc143c")
 legend(x="topleft",
        legend = c("Régimes démocratiques","Régimes non-démocratiques","log-normale"),
        lty =c(1,2,1,2,1,2),
-       col = c("#03B439","#633974","red"),
+       col = c("#03B439","#633974","#dc143c"),
        lwd= 2)
 
-plot(democracy.gomp, main = "Modèle Gompertz", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz")
+plot(democracy.gomp, main = "Modèle Gompertz", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type = "cumhaz", col ="#dc143c")
 legend(x="topleft",
        legend = c("Régimes démocratiques","Régimes non-démocratiques","Gompertz"),
        lty =c(1,2,1,2,1,2),
-       col = c("#03B439","#633974","red"),
+       col = c("#03B439","#633974","#dc143c"),
        lwd= 2)
 
-plot(democracy.weib, main = "Modèle Weibull", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type ="cumhaz")
+plot(democracy.weib, main = "Modèle Weibull", xlab = "temps",ylab = "Estimation du hasard cumulé", ci = TRUE, col.obs = c("#03B439", "#633974"), cl = 0.95, conf.int = TRUE, lwd = 2, lwd.obs = 1.5, type ="cumhaz", col ="#dc143c")
 legend(x="topleft",
        legend = c("Régimes démocratiques","Régimes non-démocratiques","Weibull"),
        lty =c(1,2,1,2,1,2),
-       col = c("#03B439","#633974","red"),
+       col = c("#03B439","#633974","#dc143c"),
        lwd= 2)
 
 
